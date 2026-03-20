@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from sqlalchemy import Boolean, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,9 +23,9 @@ class User(Base, TimestampMixin):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    staff_id: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
-    student_id: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
-    department: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    staff_id: Mapped[Optional[str]] = mapped_column(String(50), unique=True, nullable=True)
+    student_id: Mapped[Optional[str]] = mapped_column(String(50), unique=True, nullable=True)
+    department: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     led_projects = relationship("Project", back_populates="leader", foreign_keys="Project.leader_id")
     reviewed_projects = relationship(

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from sqlalchemy import Enum, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,8 +16,8 @@ class Category(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[CategoryType] = mapped_column(Enum(CategoryType, native_enum=False), nullable=False, index=True)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    points: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    points: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     projects = relationship("Project", back_populates="category")
     papers = relationship("Paper", back_populates="category")

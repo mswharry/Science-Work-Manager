@@ -1,3 +1,4 @@
+﻿from __future__ import annotations
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -56,4 +57,5 @@ class PaperOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 

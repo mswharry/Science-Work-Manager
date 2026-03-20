@@ -1,3 +1,4 @@
+﻿from __future__ import annotations
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -48,4 +49,5 @@ class ProjectOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 

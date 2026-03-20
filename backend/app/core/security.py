@@ -1,3 +1,4 @@
+﻿from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
@@ -30,4 +31,5 @@ def decode_token(token: str) -> dict:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError as exc:
         raise ValueError("Invalid token") from exc
+
 

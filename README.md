@@ -4,7 +4,7 @@ BTL Web hệ thống quản lý hoạt động nghiên cứu khoa học của kh
 ## Backend (Thành viên 1)
 ```bash
 cd backend
-python -m venv .venv
+py -3.13 -m venv .venv
 .venv\\Scripts\\activate
 pip install -r requirements.txt
 copy .env.example .env
@@ -14,3 +14,4 @@ uvicorn app.main:app --reload
 ```
 
 API docs: `http://127.0.0.1:8000/docs`
+

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,7 +15,7 @@ class ProjectMember(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-    role_in_project: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    role_in_project: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     project = relationship("Project", back_populates="members")
     user = relationship("User", back_populates="project_memberships")

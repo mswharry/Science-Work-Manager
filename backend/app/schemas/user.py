@@ -1,3 +1,4 @@
+﻿from __future__ import annotations
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr
@@ -23,3 +24,4 @@ class UserApproveRequest(BaseModel):
     role: str
 
     model_config = ConfigDict(str_strip_whitespace=True)
+

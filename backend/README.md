@@ -1,9 +1,13 @@
-# Backend - Science Work Manager
+﻿# Backend - Science Work Manager
+
+## Python version
+- Required: `Python 3.13`
+- On Windows, use: `py -3.13`
 
 ## 1. Setup
 ```bash
 cd backend
-python -m venv .venv
+py -3.13 -m venv .venv
 .venv\\Scripts\\activate
 pip install -r requirements.txt
 copy .env.example .env

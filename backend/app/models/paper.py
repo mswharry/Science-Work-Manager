@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,22 +16,22 @@ class Paper(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False, index=True)
-    journal_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    publication_year: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
-    volume: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    issue: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    pages: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    doi: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
+    journal_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    publication_year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    volume: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    issue: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    pages: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    doi: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, unique=True)
     status: Mapped[PaperStatus] = mapped_column(
         Enum(PaperStatus, native_enum=False),
         nullable=False,
         default=PaperStatus.PENDING,
         index=True,
     )
-    file_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
-    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    file_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    review_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reviewed_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     category = relationship("Category", back_populates="papers")
     reviewer = relationship("User", back_populates="reviewed_papers", foreign_keys=[reviewed_by])

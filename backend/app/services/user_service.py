@@ -1,3 +1,4 @@
+﻿from __future__ import annotations
 from fastapi import HTTPException, status
 from sqlalchemy import Select, select
 from sqlalchemy.exc import IntegrityError
@@ -65,3 +66,4 @@ def toggle_user_block(db: Session, user_id: int) -> User:
     db.commit()
     db.refresh(user)
     return user
+

@@ -1,3 +1,4 @@
+﻿from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -47,4 +48,5 @@ def admin_toggle_block_user(
 ) -> MessageResponse:
     toggle_user_block(db=db, user_id=user_id)
     return MessageResponse(message="User status updated")
+
 
