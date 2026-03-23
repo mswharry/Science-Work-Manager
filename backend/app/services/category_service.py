@@ -10,80 +10,87 @@ from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryUpdate
 
 
-def _get_category_by_id(db: Session, category_id: int) -> Category:
-	category = db.get(Category, category_id)
-	if not category:
-		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
-	return category
+def _ensure_category_type(category_type: str) -> CategoryType:
+    try:
+        return CategoryType(category_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid category type.") from exc
 
 
-def list_categories_by_type(db: Session, category_type: CategoryType) -> list[Category]:
-	stmt: Select[tuple[Category]] = (
-		select(Category)
-		.where(Category.type == category_type)
-		.order_by(Category.id.desc())
-	)
-	return list(db.scalars(stmt))
+def list_categories_by_type(db: Session, category_type: str) -> list[Category]:
+    category_enum = _ensure_category_type(category_type)
+    stmt: Select[tuple[Category]] = select(Category).where(Category.type == category_enum).order_by(Category.id.asc())
+    return list(db.scalars(stmt))
 
 
-def create_category(db: Session, payload: CategoryCreate, category_type: CategoryType) -> Category:
-	category = Category(
-		name=payload.name,
-		type=category_type,
-		description=payload.description,
-		points=payload.points,
-	)
-	db.add(category)
-	try:
-		db.commit()
-	except IntegrityError as exc:
-		db.rollback()
-		raise HTTPException(
-			status_code=status.HTTP_409_CONFLICT,
-			detail="Category name already exists for this type.",
-		) from exc
-	db.refresh(category)
-	return category
+def create_category(db: Session, payload: CategoryCreate, category_type: str) -> Category:
+    category_enum = _ensure_category_type(category_type)
+
+    if payload.type and payload.type != category_enum.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Category type must be {category_enum.value}.",
+        )
+
+    category = Category(
+        name=payload.name.strip(),
+        type=category_enum,
+        description=payload.description,
+        points=payload.points,
+    )
+    db.add(category)
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category with this name already exists for the selected type.",
+        ) from exc
+
+    db.refresh(category)
+    return category
 
 
-def update_category(
-	db: Session,
-	category_id: int,
-	payload: CategoryUpdate,
-	category_type: CategoryType,
-) -> Category:
-	category = _get_category_by_id(db, category_id)
-	if category.type != category_type:
-		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
-
-	update_data = payload.model_dump(exclude_unset=True)
-	for key, value in update_data.items():
-		setattr(category, key, value)
-
-	try:
-		db.commit()
-	except IntegrityError as exc:
-		db.rollback()
-		raise HTTPException(
-			status_code=status.HTTP_409_CONFLICT,
-			detail="Category name already exists for this type.",
-		) from exc
-	db.refresh(category)
-	return category
+def get_category_by_id_and_type(db: Session, category_id: int, category_type: str) -> Category:
+    category_enum = _ensure_category_type(category_type)
+    category = db.scalar(select(Category).where(Category.id == category_id, Category.type == category_enum))
+    if not category:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
+    return category
 
 
-def delete_category(db: Session, category_id: int, category_type: CategoryType) -> None:
-	category = _get_category_by_id(db, category_id)
-	if category.type != category_type:
-		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
+def update_category(db: Session, category_id: int, payload: CategoryUpdate, category_type: str) -> Category:
+    category = get_category_by_id_and_type(db=db, category_id=category_id, category_type=category_type)
 
-	db.delete(category)
-	try:
-		db.commit()
-	except IntegrityError as exc:
-		db.rollback()
-		raise HTTPException(
-			status_code=status.HTTP_409_CONFLICT,
-			detail="Cannot delete category because it is being used by projects or papers.",
-		) from exc
+    if payload.name is not None:
+        category.name = payload.name.strip()
+    if payload.description is not None:
+        category.description = payload.description
+    if payload.points is not None:
+        category.points = payload.points
 
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Category with this name already exists for the selected type.",
+        ) from exc
+
+    db.refresh(category)
+    return category
+
+
+def delete_category(db: Session, category_id: int, category_type: str) -> None:
+    category = get_category_by_id_and_type(db=db, category_id=category_id, category_type=category_type)
+    db.delete(category)
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete this category because it is being used.",
+        ) from exc
