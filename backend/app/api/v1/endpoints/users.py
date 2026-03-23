@@ -48,5 +48,3 @@ def admin_toggle_block_user(
 ) -> MessageResponse:
     toggle_user_block(db=db, user_id=user_id)
     return MessageResponse(message="User status updated")
-
-
