@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+﻿from fastapi import APIRouter, status
 
 from app.api.deps import DbSession
 from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse

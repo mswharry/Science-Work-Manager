@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+﻿from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -15,6 +15,18 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Public register only supports student or lecturer role.",
+        )
+
+    if payload.role == UserRole.STUDENT.value and not payload.student_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="student_id is required for student registration.",
+        )
+
+    if payload.role == UserRole.LECTURER.value and not payload.staff_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="staff_id is required for lecturer registration.",
         )
 
     existing_user = db.scalar(select(User).where(User.email == payload.email))
@@ -73,4 +85,3 @@ def login_user(db: Session, payload: LoginRequest) -> TokenResponse:
 
 def to_user_out(user: User) -> UserOut:
     return UserOut.model_validate(user)
-
