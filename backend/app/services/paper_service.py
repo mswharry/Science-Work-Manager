@@ -37,30 +37,30 @@ def _ensure_paper_category(db: Session, category_id: int) -> None:
 def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper:
     _ensure_paper_category(db, payload.category_id)
 
-    paper = Paper(
-        title=payload.title.strip(),
-        category_id=payload.category_id,
-        journal_name=payload.journal_name,
-        publication_year=payload.publication_year,
-        volume=payload.volume,
-        issue=payload.issue,
-        pages=payload.pages,
-        doi=payload.doi,
-        status=PaperStatus.PENDING,
-    )
-    db.add(paper)
-    db.flush()
-
-    db.add(
-        PaperAuthor(
-            paper_id=paper.id,
-            user_id=current_user.id,
-            author_order=1,
-            is_corresponding=True,
-        )
-    )
-
     try:
+        paper = Paper(
+            title=payload.title.strip(),
+            category_id=payload.category_id,
+            journal_name=payload.journal_name,
+            publication_year=payload.publication_year,
+            volume=payload.volume,
+            issue=payload.issue,
+            pages=payload.pages,
+            doi=payload.doi,
+            status=PaperStatus.PENDING,
+        )
+        db.add(paper)
+        db.flush()
+
+        db.add(
+            PaperAuthor(
+                paper_id=paper.id,
+                user_id=current_user.id,
+                author_order=1,
+                is_corresponding=True,
+            )
+        )
+
         db.commit()
     except IntegrityError as exc:
         db.rollback()
