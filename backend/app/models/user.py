@@ -22,7 +22,7 @@ class User(Base, TimestampMixin):
         default=UserRole.STUDENT,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     staff_id: Mapped[Optional[str]] = mapped_column(String(50), unique=True, nullable=True)
     student_id: Mapped[Optional[str]] = mapped_column(String(50), unique=True, nullable=True)
     department: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
