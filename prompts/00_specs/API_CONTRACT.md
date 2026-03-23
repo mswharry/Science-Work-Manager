@@ -213,7 +213,7 @@ Request:
 ```
 ### GET /notifications
 ## 7. Statistics
-##GET /admin/statistics/dashboard
+## GET /admin/statistics/dashboard
 
 Response gồm:
 
