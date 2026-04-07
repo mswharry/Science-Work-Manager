@@ -6,6 +6,7 @@ import PageHeader from "../components/common/PageHeader";
 import ProjectForm from "../components/projects/ProjectForm";
 import { listProjectCategories } from "../services/categoryService";
 import { createProject, getProject, updateProject } from "../services/projectService";
+import { uploadProjectFinalReport, uploadProjectProposal } from "../services/uploadService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { CATEGORY_ACCESS_NOTE } from "../utils/constants";
 
@@ -22,13 +23,9 @@ export default function ProjectFormPage({ mode }) {
   const [submitting, setSubmitting] = useState(false);
 
   const loadProjectData = async () => {
-    if (mode !== "edit") {
-      return;
-    }
-
+    if (mode !== "edit") return;
     setPageLoading(true);
     setSubmitError("");
-
     try {
       const data = await getProject(projectId);
       setInitialValues(data);
@@ -41,14 +38,11 @@ export default function ProjectFormPage({ mode }) {
 
   const loadCategories = async () => {
     setCategoriesLoading(true);
-
     try {
       const data = await listProjectCategories();
       setCategories(data);
       setCategoryMode(data.length ? "select" : "manual");
-      setCategoryNote(
-        data.length ? "Chọn danh mục đề tài phù hợp từ danh sách đã được quản trị viên khai báo." : CATEGORY_ACCESS_NOTE,
-      );
+      setCategoryNote(data.length ? "Chọn danh mục đề tài phù hợp từ danh sách đã được quản trị viên khai báo." : CATEGORY_ACCESS_NOTE);
     } catch (requestError) {
       setCategoryMode("manual");
       setCategoryNote(getApiErrorMessage(requestError, CATEGORY_ACCESS_NOTE));
@@ -57,39 +51,33 @@ export default function ProjectFormPage({ mode }) {
     }
   };
 
-  useEffect(() => {
-    loadProjectData();
-  }, [mode, projectId]);
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  useEffect(() => { loadProjectData(); }, [mode, projectId]);
+  useEffect(() => { loadCategories(); }, []);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
     setSubmitError("");
 
-    const { proposal_file, final_report_file, ...basePayload } = payload;
-    const attachmentPayload = {
-      proposal_file: proposal_file || null,
-      final_report_file: final_report_file || null,
-    };
-    const hasAttachments = Boolean(attachmentPayload.proposal_file || attachmentPayload.final_report_file);
+    const { proposal_upload, final_report_upload, ...basePayload } = payload;
 
     try {
+      let proposalFile = basePayload.proposal_file || null;
+      let finalReportFile = basePayload.final_report_file || null;
+
+      if (proposal_upload) {
+        const uploaded = await uploadProjectProposal(proposal_upload);
+        proposalFile = uploaded.file_url;
+      }
+      if (final_report_upload) {
+        const uploaded = await uploadProjectFinalReport(final_report_upload);
+        finalReportFile = uploaded.file_url;
+      }
+
       let saved;
-
       if (mode === "edit") {
-        saved = await updateProject(projectId, {
-          ...basePayload,
-          ...attachmentPayload,
-        });
+        saved = await updateProject(projectId, { ...basePayload, proposal_file: proposalFile, final_report_file: finalReportFile });
       } else {
-        saved = await createProject(basePayload);
-
-        if (hasAttachments) {
-          saved = await updateProject(saved.id, attachmentPayload);
-        }
+        saved = await createProject({ ...basePayload, proposal_file: proposalFile, final_report_file: finalReportFile });
       }
 
       navigate(`/projects/${saved.id}`);
@@ -100,21 +88,12 @@ export default function ProjectFormPage({ mode }) {
     }
   };
 
-  if (pageLoading) {
-    return <LoadingState title="Đang chuẩn bị biểu mẫu" message="Hệ thống đang tải dữ liệu đề tài cần chỉnh sửa." />;
-  }
-
-  if (mode === "edit" && submitError && !initialValues) {
-    return <ErrorState title="Không thể mở biểu mẫu đề tài" message={submitError} onRetry={loadProjectData} />;
-  }
+  if (pageLoading) return <LoadingState title="Đang chuẩn bị biểu mẫu" message="Hệ thống đang tải dữ liệu đề tài cần chỉnh sửa." />;
+  if (mode === "edit" && submitError && !initialValues) return <ErrorState title="Không thể mở biểu mẫu đề tài" message={submitError} onRetry={loadProjectData} />;
 
   return (
     <div className="stack-xl">
-      <PageHeader
-        eyebrow="Đề tài"
-        title={mode === "edit" ? "Chỉnh sửa đề tài" : "Tạo đề tài mới"}
-        description="Điền đầy đủ thông tin cần thiết để tạo mới hoặc cập nhật hồ sơ đề tài, bao gồm cả liên kết tệp đính kèm nếu có."
-      />
+      <PageHeader eyebrow="Đề tài" title={mode === "edit" ? "Chỉnh sửa đề tài" : "Khai báo đề tài mới"} description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ đề tài nghiên cứu, bao gồm cả tệp đính kèm trực tiếp nếu có." />
       <ProjectForm
         initialValues={initialValues}
         mode={mode}

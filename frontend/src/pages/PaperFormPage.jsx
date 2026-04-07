@@ -6,6 +6,7 @@ import PageHeader from "../components/common/PageHeader";
 import PaperForm from "../components/papers/PaperForm";
 import { listPaperCategories } from "../services/categoryService";
 import { createPaper, getPaper, updatePaper } from "../services/paperService";
+import { uploadPaperFile } from "../services/uploadService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { CATEGORY_ACCESS_NOTE } from "../utils/constants";
 
@@ -22,13 +23,9 @@ export default function PaperFormPage({ mode }) {
   const [submitting, setSubmitting] = useState(false);
 
   const loadPaperData = async () => {
-    if (mode !== "edit") {
-      return;
-    }
-
+    if (mode !== "edit") return;
     setPageLoading(true);
     setSubmitError("");
-
     try {
       const data = await getPaper(paperId);
       setInitialValues(data);
@@ -41,14 +38,11 @@ export default function PaperFormPage({ mode }) {
 
   const loadCategories = async () => {
     setCategoriesLoading(true);
-
     try {
       const data = await listPaperCategories();
       setCategories(data);
       setCategoryMode(data.length ? "select" : "manual");
-      setCategoryNote(
-        data.length ? "Chọn danh mục bài báo phù hợp từ danh sách đã được quản trị viên khai báo." : CATEGORY_ACCESS_NOTE,
-      );
+      setCategoryNote(data.length ? "Chọn danh mục bài báo phù hợp từ danh sách đã được quản trị viên khai báo." : CATEGORY_ACCESS_NOTE);
     } catch (requestError) {
       setCategoryMode("manual");
       setCategoryNote(getApiErrorMessage(requestError, CATEGORY_ACCESS_NOTE));
@@ -57,37 +51,27 @@ export default function PaperFormPage({ mode }) {
     }
   };
 
-  useEffect(() => {
-    loadPaperData();
-  }, [mode, paperId]);
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  useEffect(() => { loadPaperData(); }, [mode, paperId]);
+  useEffect(() => { loadCategories(); }, []);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
     setSubmitError("");
 
-    const { file_url, ...basePayload } = payload;
-    const attachmentPayload = {
-      file_url: file_url || null,
-    };
+    const { file_upload, ...basePayload } = payload;
 
     try {
+      let resolvedFileUrl = basePayload.file_url || null;
+      if (file_upload) {
+        const uploaded = await uploadPaperFile(file_upload);
+        resolvedFileUrl = uploaded.file_url;
+      }
+
       let saved;
-
       if (mode === "edit") {
-        saved = await updatePaper(paperId, {
-          ...basePayload,
-          ...attachmentPayload,
-        });
+        saved = await updatePaper(paperId, { ...basePayload, file_url: resolvedFileUrl });
       } else {
-        saved = await createPaper(basePayload);
-
-        if (attachmentPayload.file_url) {
-          saved = await updatePaper(saved.id, attachmentPayload);
-        }
+        saved = await createPaper({ ...basePayload, file_url: resolvedFileUrl });
       }
 
       navigate(`/papers/${saved.id}`);
@@ -98,21 +82,14 @@ export default function PaperFormPage({ mode }) {
     }
   };
 
-  if (pageLoading) {
-    return <LoadingState title="Đang chuẩn bị biểu mẫu" message="Hệ thống đang tải dữ liệu bài báo cần chỉnh sửa." />;
-  }
-
+  if (pageLoading) return <LoadingState title="Đang chuẩn bị biểu mẫu" message="Hệ thống đang tải dữ liệu bài báo cần chỉnh sửa." />;
   if (mode === "edit" && submitError && !initialValues) {
     return <ErrorState title="Không thể mở biểu mẫu bài báo" message={submitError} onRetry={loadPaperData} />;
   }
 
   return (
     <div className="stack-xl">
-      <PageHeader
-        eyebrow="Bài báo"
-        title={mode === "edit" ? "Chỉnh sửa bài báo" : "Khai báo bài báo mới"}
-        description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học, bao gồm cả liên kết tệp đính kèm nếu có."
-      />
+      <PageHeader eyebrow="Bài báo" title={mode === "edit" ? "Chỉnh sửa bài báo" : "Khai báo bài báo mới"} description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học, bao gồm cả tệp đính kèm trực tiếp nếu có." />
       <PaperForm
         initialValues={initialValues}
         mode={mode}

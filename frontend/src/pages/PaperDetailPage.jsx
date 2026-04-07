@@ -8,6 +8,7 @@ import StatusBadge from "../components/common/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
 import { addPaperAuthor, deletePaper, getPaper } from "../services/paperService";
 import { getApiErrorMessage } from "../utils/apiError";
+import { buildAssetUrl } from "../services/uploadService";
 import { formatDateTime } from "../utils/formatters";
 import { canManagePaperFromDetail } from "../utils/permissions";
 
@@ -180,7 +181,7 @@ export default function PaperDetailPage() {
               <span className="key-value-list__label">Tệp đính kèm</span>
               <span className="key-value-list__value">
                 {paper.file_url ? (
-                  <a href={paper.file_url} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
+                  <a href={buildAssetUrl(paper.file_url)} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
                     Mở tệp
                   </a>
                 ) : (

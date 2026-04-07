@@ -13,6 +13,7 @@ from app.models.category import Category
 from app.models.paper import Paper
 from app.models.user import User
 from app.schemas.paper import AddAuthorRequest, PaperCreate, PaperReviewRequest, PaperUpdate
+from app.services.upload_service import delete_local_upload
 
 
 def _validate_paper_status(status_value: str) -> PaperStatus:
@@ -47,6 +48,7 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
             issue=payload.issue,
             pages=payload.pages,
             doi=payload.doi,
+            file_url=payload.file_url,
             status=PaperStatus.PENDING,
         )
         db.add(paper)
@@ -143,6 +145,9 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
     if "category_id" in values and values["category_id"] is not None:
         _ensure_paper_category(db, values["category_id"])
 
+    if 'file_url' in values and values['file_url'] != paper.file_url:
+        delete_local_upload(paper.file_url)
+
     for field, value in values.items():
         setattr(paper, field, value)
 
@@ -165,6 +170,7 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
 def delete_paper(db: Session, paper_id: int, current_user: User) -> None:
     paper = get_paper_by_id(db, paper_id)
     _ensure_paper_editable(db, paper, current_user)
+    delete_local_upload(paper.file_url)
     db.delete(paper)
     db.commit()
 
