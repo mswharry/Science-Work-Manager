@@ -41,21 +41,16 @@ export default function ProjectForm({
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const payload = {
+    onSubmit({
       name: form.name.trim(),
       category_id: Number(form.category_id),
       budget: normalizeOptionalNumber(form.budget),
       start_date: normalizeOptionalText(form.start_date),
       end_date: normalizeOptionalText(form.end_date),
       description: normalizeOptionalText(form.description),
-    };
-
-    if (mode === "edit") {
-      payload.proposal_file = normalizeOptionalText(form.proposal_file);
-      payload.final_report_file = normalizeOptionalText(form.final_report_file);
-    }
-
-    onSubmit(payload);
+      proposal_file: normalizeOptionalText(form.proposal_file),
+      final_report_file: normalizeOptionalText(form.final_report_file),
+    });
   };
 
   return (
@@ -163,34 +158,33 @@ export default function ProjectForm({
         </FormField>
       </section>
 
-      {mode === "edit" ? (
-        <section className="form-section stack-md">
-          <div className="section-heading">
-            <div>
-              <h2 className="section-title">Tệp đính kèm</h2>
-              <p className="section-description">Bạn có thể cập nhật đường dẫn tệp đính kèm ở bước chỉnh sửa hồ sơ.</p>
-            </div>
+      <section className="form-section stack-md">
+        <div className="section-heading">
+          <div>
+            <h2 className="section-title">Tệp đính kèm</h2>
+            <p className="section-description">Nhập liên kết chia sẻ hoặc đường dẫn lưu trữ của tệp đề cương và báo cáo để lưu cùng hồ sơ đề tài.</p>
           </div>
-          <div className="form-grid form-grid--2">
-            <FormField label="Tệp đề cương / đề xuất">
-              <input
-                className="input"
-                value={form.proposal_file}
-                onChange={(event) => handleChange("proposal_file", event.target.value)}
-                placeholder="https://... hoặc đường dẫn lưu trữ"
-              />
-            </FormField>
-            <FormField label="Tệp báo cáo cuối cùng">
-              <input
-                className="input"
-                value={form.final_report_file}
-                onChange={(event) => handleChange("final_report_file", event.target.value)}
-                placeholder="https://... hoặc đường dẫn lưu trữ"
-              />
-            </FormField>
-          </div>
-        </section>
-      ) : null}
+        </div>
+        <div className="form-grid form-grid--2">
+          <FormField label="Liên kết / đường dẫn tệp đề cương">
+            <input
+              className="input"
+              value={form.proposal_file}
+              onChange={(event) => handleChange("proposal_file", event.target.value)}
+              placeholder="https://... hoặc đường dẫn lưu trữ"
+            />
+          </FormField>
+          <FormField label="Liên kết / đường dẫn báo cáo cuối cùng">
+            <input
+              className="input"
+              value={form.final_report_file}
+              onChange={(event) => handleChange("final_report_file", event.target.value)}
+              placeholder="https://... hoặc đường dẫn lưu trữ"
+            />
+          </FormField>
+        </div>
+        <p className="form-note">Bạn có thể thêm ngay từ lúc tạo mới hoặc cập nhật lại sau khi hồ sơ đã được tạo.</p>
+      </section>
 
       {submitError ? <div className="notice notice--danger">{submitError}</div> : null}
 

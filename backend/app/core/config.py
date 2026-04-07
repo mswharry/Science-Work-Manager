@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
 
-    ADMIN_EMAIL: str = "admin@swm.local"
+    ADMIN_EMAIL: str = "admin@gmail.com"
     ADMIN_PASSWORD: str = "Admin@123456"
     ADMIN_FULL_NAME: str = "System Admin"
     ADMIN_DEPARTMENT: str = "Faculty of Information Security"

@@ -200,10 +200,7 @@ export default function HomePage() {
           description="Nền tảng phục vụ tiếp nhận hồ sơ, theo dõi phê duyệt đề tài và bài báo, đồng thời hỗ trợ quản trị thông báo nội bộ cho hoạt động nghiên cứu khoa học."
           actions={
             <div className="button-row">
-              <Link to="/login" className="button nav-button-link">
-                Đăng nhập
-              </Link>
-              <Link to="/register" className="button button--secondary nav-button-link">
+              <Link to="/register" className="button nav-button-link">
                 Đăng ký tài khoản
               </Link>
             </div>
@@ -255,12 +252,11 @@ export default function HomePage() {
             <div className="stack-md">
               <div>
                 <h2 className="section-title">Truy cập hệ thống</h2>
-                <p className="section-description">Nếu đã có tài khoản, bạn có thể đăng nhập ngay để tiếp tục làm việc với hồ sơ nghiên cứu.</p>
+                <p className="section-description">
+                  Nếu đã có tài khoản, vui lòng sử dụng nút <strong>Đăng nhập</strong> trên thanh điều hướng phía trên để tiếp tục làm việc.
+                </p>
               </div>
               <div className="button-row">
-                <Link to="/login" className="button nav-button-link">
-                  Đi tới đăng nhập
-                </Link>
                 <Link to="/register" className="button button--secondary nav-button-link">
                   Tạo tài khoản mới
                 </Link>

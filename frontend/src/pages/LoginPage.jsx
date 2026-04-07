@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const waitingApproval = error.includes("chờ quản trị viên phê duyệt");
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -98,6 +99,11 @@ export default function LoginPage() {
         </div>
 
         {error ? <div className="notice notice--danger">{error}</div> : null}
+        {waitingApproval ? (
+          <div className="notice notice--warning">
+            Tài khoản giảng viên chỉ có thể đăng nhập sau khi được quản trị viên phê duyệt. Vui lòng kiểm tra lại sau.
+          </div>
+        ) : null}
 
         <div className="button-row">
           <button type="submit" className="button" disabled={submitting}>

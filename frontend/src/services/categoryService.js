@@ -1,7 +1,7 @@
 import api from "./api";
 
 export async function listProjectCategories() {
-  const response = await api.get("/admin/categories/project-types");
+  const response = await api.get("/categories/project-types");
   return response.data;
 }
 
@@ -21,7 +21,7 @@ export async function deleteProjectCategory(categoryId) {
 }
 
 export async function listPaperCategories() {
-  const response = await api.get("/admin/categories/paper-types");
+  const response = await api.get("/categories/paper-types");
   return response.data;
 }
 

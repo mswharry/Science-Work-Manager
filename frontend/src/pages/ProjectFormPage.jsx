@@ -4,7 +4,6 @@ import ErrorState from "../components/common/ErrorState";
 import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import ProjectForm from "../components/projects/ProjectForm";
-import { useAuth } from "../contexts/AuthContext";
 import { listProjectCategories } from "../services/categoryService";
 import { createProject, getProject, updateProject } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -13,13 +12,12 @@ import { CATEGORY_ACCESS_NOTE } from "../utils/constants";
 export default function ProjectFormPage({ mode }) {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [categoryMode, setCategoryMode] = useState(isAdmin ? "select" : "manual");
+  const [categoryMode, setCategoryMode] = useState("select");
   const [categoryNote, setCategoryNote] = useState("");
   const [pageLoading, setPageLoading] = useState(mode === "edit");
-  const [categoriesLoading, setCategoriesLoading] = useState(isAdmin);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,20 +40,15 @@ export default function ProjectFormPage({ mode }) {
   };
 
   const loadCategories = async () => {
-    if (!isAdmin) {
-      setCategoryMode("manual");
-      setCategoryNote(CATEGORY_ACCESS_NOTE);
-      setCategoriesLoading(false);
-      return;
-    }
-
     setCategoriesLoading(true);
 
     try {
       const data = await listProjectCategories();
       setCategories(data);
-      setCategoryMode("select");
-      setCategoryNote("");
+      setCategoryMode(data.length ? "select" : "manual");
+      setCategoryNote(
+        data.length ? "Chọn danh mục đề tài phù hợp từ danh sách đã được quản trị viên khai báo." : CATEGORY_ACCESS_NOTE,
+      );
     } catch (requestError) {
       setCategoryMode("manual");
       setCategoryNote(getApiErrorMessage(requestError, CATEGORY_ACCESS_NOTE));
@@ -70,14 +63,35 @@ export default function ProjectFormPage({ mode }) {
 
   useEffect(() => {
     loadCategories();
-  }, [isAdmin]);
+  }, []);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
     setSubmitError("");
 
+    const { proposal_file, final_report_file, ...basePayload } = payload;
+    const attachmentPayload = {
+      proposal_file: proposal_file || null,
+      final_report_file: final_report_file || null,
+    };
+    const hasAttachments = Boolean(attachmentPayload.proposal_file || attachmentPayload.final_report_file);
+
     try {
-      const saved = mode === "edit" ? await updateProject(projectId, payload) : await createProject(payload);
+      let saved;
+
+      if (mode === "edit") {
+        saved = await updateProject(projectId, {
+          ...basePayload,
+          ...attachmentPayload,
+        });
+      } else {
+        saved = await createProject(basePayload);
+
+        if (hasAttachments) {
+          saved = await updateProject(saved.id, attachmentPayload);
+        }
+      }
+
       navigate(`/projects/${saved.id}`);
     } catch (requestError) {
       setSubmitError(getApiErrorMessage(requestError, "Không thể lưu đề tài."));
@@ -99,7 +113,7 @@ export default function ProjectFormPage({ mode }) {
       <PageHeader
         eyebrow="Đề tài"
         title={mode === "edit" ? "Chỉnh sửa đề tài" : "Tạo đề tài mới"}
-        description="Điền đầy đủ thông tin cần thiết để tạo mới hoặc cập nhật hồ sơ đề tài."
+        description="Điền đầy đủ thông tin cần thiết để tạo mới hoặc cập nhật hồ sơ đề tài, bao gồm cả liên kết tệp đính kèm nếu có."
       />
       <ProjectForm
         initialValues={initialValues}
