@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal
 
@@ -12,6 +12,8 @@ class ProjectCreate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     description: str | None = None
+    proposal_file: str | None = None
+    final_report_file: str | None = None
 
 
 class ProjectUpdate(BaseModel):
@@ -26,7 +28,7 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectReviewRequest(BaseModel):
-    action: Literal["approve", "reject"]
+    action: Literal['approve', 'reject']
     note: str | None = None
 
 
@@ -50,5 +52,3 @@ class ProjectOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-

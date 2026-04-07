@@ -7,6 +7,7 @@ import StatusBadge from "../components/common/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
 import { deleteProject, getProject } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
+import { buildAssetUrl } from "../services/uploadService";
 import { formatCurrency, formatDate, formatDateTime } from "../utils/formatters";
 import { canManageProject } from "../utils/permissions";
 
@@ -153,7 +154,7 @@ export default function ProjectDetailPage() {
               <span className="key-value-list__label">Tệp đề cương</span>
               <span className="key-value-list__value">
                 {project.proposal_file ? (
-                  <a href={project.proposal_file} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
+                  <a href={buildAssetUrl(project.proposal_file)} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
                     Mở tệp
                   </a>
                 ) : (
@@ -165,7 +166,7 @@ export default function ProjectDetailPage() {
               <span className="key-value-list__label">Báo cáo cuối kỳ</span>
               <span className="key-value-list__value">
                 {project.final_report_file ? (
-                  <a href={project.final_report_file} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
+                  <a href={buildAssetUrl(project.final_report_file)} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
                     Mở tệp
                   </a>
                 ) : (

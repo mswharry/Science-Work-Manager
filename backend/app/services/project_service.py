@@ -12,6 +12,7 @@ from app.models.category import Category
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectReviewRequest, ProjectUpdate
+from app.services.upload_service import delete_local_upload
 
 
 def _validate_project_status(status_value: str) -> ProjectStatus:
@@ -57,6 +58,8 @@ def create_project(db: Session, payload: ProjectCreate, current_user: User) -> P
         end_date=payload.end_date,
         status=ProjectStatus.PENDING,
         description=payload.description,
+        proposal_file=payload.proposal_file,
+        final_report_file=payload.final_report_file,
     )
     db.add(project)
 
@@ -159,6 +162,11 @@ def update_project(db: Session, project_id: int, payload: ProjectUpdate, current
     end_date = values.get("end_date", project.end_date)
     _validate_project_dates(start_date, end_date)
 
+    if 'proposal_file' in values and values['proposal_file'] != project.proposal_file:
+        delete_local_upload(project.proposal_file)
+    if 'final_report_file' in values and values['final_report_file'] != project.final_report_file:
+        delete_local_upload(project.final_report_file)
+
     for field, value in values.items():
         setattr(project, field, value)
 
@@ -181,6 +189,8 @@ def update_project(db: Session, project_id: int, payload: ProjectUpdate, current
 def delete_project(db: Session, project_id: int, current_user: User) -> None:
     project = get_project_by_id(db, project_id)
     _ensure_project_editable(project, current_user)
+    delete_local_upload(project.proposal_file)
+    delete_local_upload(project.final_report_file)
     db.delete(project)
     db.commit()
 

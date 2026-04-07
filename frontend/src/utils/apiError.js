@@ -1,4 +1,6 @@
 const EXACT_MESSAGE_MAP = {
+  "Định dạng tệp không được hỗ trợ. Vui lòng dùng PDF, Word, Excel, ảnh hoặc tệp nén phổ biến.": "Định dạng tệp không được hỗ trợ. Vui lòng dùng PDF, Word, Excel, ảnh hoặc tệp nén phổ biến.",
+  "Tệp tải lên không hợp lệ.": "Tệp tải lên không hợp lệ.",
   "Lecturer account is waiting for admin approval.": "Tài khoản giảng viên của bạn đang chờ quản trị viên phê duyệt. Vui lòng thử lại sau hoặc liên hệ quản trị viên.",
   "Category with this name already exists for the selected type.": "Danh mục này đã tồn tại trong nhóm đang chọn.",
   "Invalid email or password.": "Email hoặc mật khẩu không đúng.",

@@ -22,8 +22,10 @@ class Settings(BaseSettings):
     ADMIN_FULL_NAME: str = "System Admin"
     ADMIN_DEPARTMENT: str = "Faculty of Information Security"
 
+    UPLOAD_DIR: str = "./uploads"
+    MAX_UPLOAD_SIZE_MB: int = 20
+
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
