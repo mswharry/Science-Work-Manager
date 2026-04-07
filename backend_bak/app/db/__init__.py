@@ -1,2 +1,0 @@
-"""Database utility package."""
-
