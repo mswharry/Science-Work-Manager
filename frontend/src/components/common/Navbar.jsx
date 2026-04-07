@@ -29,57 +29,59 @@ export default function Navbar() {
           </span>
         </NavLink>
 
-        <div className="nav-links">
-          <NavLink to="/" className={navLinkClass} end>
-            Trang chủ
-          </NavLink>
-          {isAuthenticated ? (
-            <>
-              <NavLink to="/projects" className={navLinkClass}>
-                Đề tài
-              </NavLink>
-              <NavLink to="/papers" className={navLinkClass}>
-                Bài báo
-              </NavLink>
-              <NavLink to="/dashboard" className={navLinkClass}>
-                Bảng điều khiển
-              </NavLink>
-              <NavLink to="/profile" className={navLinkClass}>
-                Tài khoản
-              </NavLink>
-            </>
-          ) : null}
-          {isAdmin ? (
-            <NavLink to="/admin" className={navLinkClass}>
-              Quản trị
+        <div className="nav-main">
+          <div className="nav-links">
+            <NavLink to="/" className={navLinkClass} end>
+              Trang chủ
             </NavLink>
-          ) : null}
-        </div>
+            {isAuthenticated ? (
+              <>
+                <NavLink to="/projects" className={navLinkClass}>
+                  Đề tài
+                </NavLink>
+                <NavLink to="/papers" className={navLinkClass}>
+                  Bài báo
+                </NavLink>
+                <NavLink to="/dashboard" className={navLinkClass}>
+                  Bảng điều khiển
+                </NavLink>
+                <NavLink to="/profile" className={navLinkClass}>
+                  Tài khoản
+                </NavLink>
+              </>
+            ) : null}
+            {isAdmin ? (
+              <NavLink to="/admin" className={navLinkClass}>
+                Quản trị
+              </NavLink>
+            ) : null}
+          </div>
 
-        <div className="nav-actions">
-          {isAuthenticated ? (
-            <>
-              <div className="nav-user">
-                <div className="nav-user__meta">
-                  <strong>{user?.full_name}</strong>
-                  <span>{user?.email}</span>
+          <div className="nav-actions">
+            {isAuthenticated ? (
+              <>
+                <div className="nav-user">
+                  <div className="nav-user__meta">
+                    <strong>{user?.full_name}</strong>
+                    <span>{user?.email}</span>
+                  </div>
+                  <StatusBadge value={user?.role} kind="role" />
                 </div>
-                <StatusBadge value={user?.role} kind="role" />
-              </div>
-              <button type="button" className="button button--ghost" onClick={handleLogout}>
-                Đăng xuất
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/login" className="button button--secondary nav-button-link">
-                Đăng nhập
-              </NavLink>
-              <NavLink to="/register" className="button nav-button-link">
-                Đăng ký
-              </NavLink>
-            </>
-          )}
+                <button type="button" className="button button--ghost" onClick={handleLogout}>
+                  Đăng xuất
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login" className="button button--secondary nav-button-link">
+                  Đăng nhập
+                </NavLink>
+                <NavLink to="/register" className="button nav-button-link">
+                  Đăng ký
+                </NavLink>
+              </>
+            )}
+          </div>
         </div>
       </nav>
     </header>

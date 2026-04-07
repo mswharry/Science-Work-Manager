@@ -62,4 +62,4 @@ export const TARGET_ROLE_LABELS = {
 };
 
 export const CATEGORY_ACCESS_NOTE =
-  "Nếu không tải được danh mục, bạn vẫn có thể nhập mã danh mục hợp lệ do quản trị viên cung cấp.";
+  "Hệ thống chưa tải được danh mục. Bạn có thể thử tải lại trang hoặc nhập mã danh mục do quản trị viên cung cấp.";

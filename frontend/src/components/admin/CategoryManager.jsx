@@ -17,6 +17,11 @@ function createEmptyForm() {
   return { name: "", description: "", points: "" };
 }
 
+const TYPE_LABELS = {
+  project: "danh mục đề tài",
+  paper: "danh mục bài báo",
+};
+
 export default function CategoryManager() {
   const [projectCategories, setProjectCategories] = useState([]);
   const [paperCategories, setPaperCategories] = useState([]);
@@ -27,6 +32,7 @@ export default function CategoryManager() {
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [actionKey, setActionKey] = useState("");
 
   const handlers = useMemo(
@@ -80,6 +86,7 @@ export default function CategoryManager() {
     const key = `create-${type}`;
     setActionKey(key);
     setError("");
+    setSuccess("");
 
     try {
       await handlers[type].create({
@@ -88,15 +95,22 @@ export default function CategoryManager() {
         points: createForms[type].points === "" ? null : Number(createForms[type].points),
       });
       setCreateForms((previous) => ({ ...previous, [type]: createEmptyForm() }));
+      setSuccess(`Đã tạo ${TYPE_LABELS[type]} thành công.`);
       await loadCategories();
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Không thể tạo danh mục."));
+      setError(
+        getApiErrorMessage(
+          requestError,
+          type === "paper" ? "Không thể tạo danh mục bài báo." : "Không thể tạo danh mục đề tài.",
+        ),
+      );
     } finally {
       setActionKey("");
     }
   };
 
   const startEdit = (type, category) => {
+    setSuccess("");
     setEditingItem({
       type,
       id: category.id,
@@ -118,6 +132,7 @@ export default function CategoryManager() {
     const key = `save-${editingItem.type}-${editingItem.id}`;
     setActionKey(key);
     setError("");
+    setSuccess("");
 
     try {
       await handlers[editingItem.type].update(editingItem.id, {
@@ -125,10 +140,16 @@ export default function CategoryManager() {
         description: editingItem.description.trim() || null,
         points: editingItem.points === "" ? null : Number(editingItem.points),
       });
+      setSuccess(`Đã cập nhật ${TYPE_LABELS[editingItem.type]} thành công.`);
       setEditingItem(null);
       await loadCategories();
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Không thể cập nhật danh mục."));
+      setError(
+        getApiErrorMessage(
+          requestError,
+          editingItem.type === "paper" ? "Không thể cập nhật danh mục bài báo." : "Không thể cập nhật danh mục đề tài.",
+        ),
+      );
     } finally {
       setActionKey("");
     }
@@ -143,12 +164,19 @@ export default function CategoryManager() {
     const key = `delete-${type}-${categoryId}`;
     setActionKey(key);
     setError("");
+    setSuccess("");
 
     try {
       await handlers[type].remove(categoryId);
+      setSuccess(`Đã xóa ${TYPE_LABELS[type]} thành công.`);
       await loadCategories();
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Không thể xóa danh mục."));
+      setError(
+        getApiErrorMessage(
+          requestError,
+          type === "paper" ? "Không thể xóa danh mục bài báo." : "Không thể xóa danh mục đề tài.",
+        ),
+      );
     } finally {
       setActionKey("");
     }
@@ -290,6 +318,7 @@ export default function CategoryManager() {
   return (
     <section className="stack-lg">
       {error ? <div className="notice notice--danger">{error}</div> : null}
+      {success ? <div className="notice notice--success">{success}</div> : null}
       {loading ? <div className="inline-empty">Đang tải danh mục...</div> : null}
       {!loading ? (
         <>

@@ -1574,3 +1574,159 @@ body {
     align-items: stretch;
   }
 }
+
+/* ---- Fixes: navbar alignment, admin actions pinned right, small polish ---- */
+.navbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 20px 28px;
+}
+
+.nav-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nav-links {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.nav-actions {
+  margin-left: auto;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.nav-user {
+  max-width: min(100%, 360px);
+}
+
+@media (max-width: 1040px) {
+  .nav-main {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+
+  .nav-links {
+    width: 100%;
+  }
+
+  .nav-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 760px) {
+  .navbar {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-main {
+    display: grid;
+    gap: 12px;
+  }
+
+  .nav-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .nav-actions > * {
+    flex: 1 1 auto;
+  }
+
+  .nav-user {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* ---- Fixes v3: public category selector + compact header for admin ---- */
+.navbar {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px 24px;
+}
+
+.nav-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.nav-links {
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.nav-link {
+  padding: 10px 10px;
+  white-space: nowrap;
+}
+
+.nav-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+  gap: 10px;
+}
+
+.nav-user {
+  gap: 10px;
+  padding: 7px 10px;
+}
+
+.nav-user__meta strong {
+  font-size: 0.88rem;
+}
+
+.nav-user__meta span {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1360px) {
+  .nav-brand__subtitle {
+    display: none;
+  }
+
+  .nav-link {
+    padding-inline: 8px;
+    font-size: 0.9rem;
+  }
+
+  .nav-user__meta span {
+    display: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .navbar {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-main {
+    display: grid;
+    gap: 12px;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+  }
+
+  .nav-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

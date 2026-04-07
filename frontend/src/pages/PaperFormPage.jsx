@@ -4,7 +4,6 @@ import ErrorState from "../components/common/ErrorState";
 import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import PaperForm from "../components/papers/PaperForm";
-import { useAuth } from "../contexts/AuthContext";
 import { listPaperCategories } from "../services/categoryService";
 import { createPaper, getPaper, updatePaper } from "../services/paperService";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -13,13 +12,12 @@ import { CATEGORY_ACCESS_NOTE } from "../utils/constants";
 export default function PaperFormPage({ mode }) {
   const { paperId } = useParams();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [categoryMode, setCategoryMode] = useState(isAdmin ? "select" : "manual");
+  const [categoryMode, setCategoryMode] = useState("select");
   const [categoryNote, setCategoryNote] = useState("");
   const [pageLoading, setPageLoading] = useState(mode === "edit");
-  const [categoriesLoading, setCategoriesLoading] = useState(isAdmin);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,20 +40,15 @@ export default function PaperFormPage({ mode }) {
   };
 
   const loadCategories = async () => {
-    if (!isAdmin) {
-      setCategoryMode("manual");
-      setCategoryNote(CATEGORY_ACCESS_NOTE);
-      setCategoriesLoading(false);
-      return;
-    }
-
     setCategoriesLoading(true);
 
     try {
       const data = await listPaperCategories();
       setCategories(data);
-      setCategoryMode("select");
-      setCategoryNote("");
+      setCategoryMode(data.length ? "select" : "manual");
+      setCategoryNote(
+        data.length ? "Chọn danh mục bài báo phù hợp từ danh sách đã được quản trị viên khai báo." : CATEGORY_ACCESS_NOTE,
+      );
     } catch (requestError) {
       setCategoryMode("manual");
       setCategoryNote(getApiErrorMessage(requestError, CATEGORY_ACCESS_NOTE));
@@ -70,14 +63,33 @@ export default function PaperFormPage({ mode }) {
 
   useEffect(() => {
     loadCategories();
-  }, [isAdmin]);
+  }, []);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
     setSubmitError("");
 
+    const { file_url, ...basePayload } = payload;
+    const attachmentPayload = {
+      file_url: file_url || null,
+    };
+
     try {
-      const saved = mode === "edit" ? await updatePaper(paperId, payload) : await createPaper(payload);
+      let saved;
+
+      if (mode === "edit") {
+        saved = await updatePaper(paperId, {
+          ...basePayload,
+          ...attachmentPayload,
+        });
+      } else {
+        saved = await createPaper(basePayload);
+
+        if (attachmentPayload.file_url) {
+          saved = await updatePaper(saved.id, attachmentPayload);
+        }
+      }
+
       navigate(`/papers/${saved.id}`);
     } catch (requestError) {
       setSubmitError(getApiErrorMessage(requestError, "Không thể lưu bài báo."));
@@ -99,7 +111,7 @@ export default function PaperFormPage({ mode }) {
       <PageHeader
         eyebrow="Bài báo"
         title={mode === "edit" ? "Chỉnh sửa bài báo" : "Khai báo bài báo mới"}
-        description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học."
+        description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học, bao gồm cả liên kết tệp đính kèm nếu có."
       />
       <PaperForm
         initialValues={initialValues}

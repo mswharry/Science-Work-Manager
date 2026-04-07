@@ -42,7 +42,7 @@ export default function PaperForm({
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const payload = {
+    onSubmit({
       title: form.title.trim(),
       category_id: Number(form.category_id),
       journal_name: normalizeOptionalText(form.journal_name),
@@ -51,13 +51,8 @@ export default function PaperForm({
       issue: normalizeOptionalText(form.issue),
       pages: normalizeOptionalText(form.pages),
       doi: normalizeOptionalText(form.doi),
-    };
-
-    if (mode === "edit") {
-      payload.file_url = normalizeOptionalText(form.file_url);
-    }
-
-    onSubmit(payload);
+      file_url: normalizeOptionalText(form.file_url),
+    });
   };
 
   return (
@@ -175,24 +170,23 @@ export default function PaperForm({
         </div>
       </section>
 
-      {mode === "edit" ? (
-        <section className="form-section stack-md">
-          <div className="section-heading">
-            <div>
-              <h2 className="section-title">Tệp hoặc liên kết đính kèm</h2>
-              <p className="section-description">Bạn có thể bổ sung liên kết tệp đính kèm khi chỉnh sửa hồ sơ bài báo.</p>
-            </div>
+      <section className="form-section stack-md">
+        <div className="section-heading">
+          <div>
+            <h2 className="section-title">Tệp đính kèm</h2>
+            <p className="section-description">Nhập liên kết chia sẻ hoặc đường dẫn lưu trữ của tệp bài báo để lưu kèm hồ sơ.</p>
           </div>
-          <FormField label="Đường dẫn tệp bài báo">
-            <input
-              className="input"
-              value={form.file_url}
-              onChange={(event) => handleChange("file_url", event.target.value)}
-              placeholder="https://... hoặc đường dẫn lưu trữ"
-            />
-          </FormField>
-        </section>
-      ) : null}
+        </div>
+        <FormField label="Liên kết / đường dẫn tệp bài báo">
+          <input
+            className="input"
+            value={form.file_url}
+            onChange={(event) => handleChange("file_url", event.target.value)}
+            placeholder="https://... hoặc đường dẫn lưu trữ"
+          />
+        </FormField>
+        <p className="form-note">Bạn có thể thêm ngay khi tạo mới hoặc cập nhật lại sau nếu cần thay đổi đường dẫn tệp.</p>
+      </section>
 
       {submitError ? <div className="notice notice--danger">{submitError}</div> : null}
 
