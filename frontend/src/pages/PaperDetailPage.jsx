@@ -150,6 +150,22 @@ export default function PaperDetailPage() {
               <span className="key-value-list__value">{paper.journal_name || "—"}</span>
             </div>
             <div className="key-value-list__item">
+              <span className="key-value-list__label">Giảng viên hướng dẫn</span>
+              <span className="key-value-list__value">{paper.supervisor_full_name || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Email giảng viên</span>
+              <span className="key-value-list__value">{paper.supervisor_email || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Mã cán bộ</span>
+              <span className="key-value-list__value">{paper.supervisor_staff_id || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Đơn vị</span>
+              <span className="key-value-list__value">{paper.supervisor_department || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
               <span className="key-value-list__label">Năm công bố</span>
               <span className="key-value-list__value">{paper.publication_year || "—"}</span>
             </div>

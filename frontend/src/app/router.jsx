@@ -29,7 +29,6 @@ const router = createBrowserRouter([
         children: [
           { path: "profile", element: <ProfilePage /> },
           { path: "projects", element: <ProjectsPage /> },
-          { path: "projects/new", element: <ProjectFormPage mode="create" /> },
           { path: "projects/:projectId", element: <ProjectDetailPage /> },
           { path: "projects/:projectId/edit", element: <ProjectFormPage mode="edit" /> },
           { path: "papers", element: <PapersPage /> },
@@ -38,6 +37,10 @@ const router = createBrowserRouter([
           { path: "papers/:paperId/edit", element: <PaperFormPage mode="edit" /> },
           { path: "dashboard", element: <DashboardPage /> },
         ],
+      },
+      {
+        element: <ProtectedRoute roles={[ROLES.ADMIN, ROLES.LECTURER]} />,
+        children: [{ path: "projects/new", element: <ProjectFormPage mode="create" /> }],
       },
       {
         element: <ProtectedRoute roles={[ROLES.ADMIN]} />,

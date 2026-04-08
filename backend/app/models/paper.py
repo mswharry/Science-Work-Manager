@@ -29,6 +29,11 @@ class Paper(Base, TimestampMixin):
         index=True,
     )
     file_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    supervisor_lecturer_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    supervisor_full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    supervisor_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    supervisor_staff_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    supervisor_department: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     review_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -36,4 +41,3 @@ class Paper(Base, TimestampMixin):
     category = relationship("Category", back_populates="papers")
     reviewer = relationship("User", back_populates="reviewed_papers", foreign_keys=[reviewed_by])
     authors = relationship("PaperAuthor", back_populates="paper", cascade="all, delete-orphan")
-

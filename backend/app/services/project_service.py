@@ -46,6 +46,12 @@ def _validate_project_dates(start_date, end_date) -> None:
 
 
 def create_project(db: Session, payload: ProjectCreate, current_user: User) -> Project:
+    if current_user.role == UserRole.STUDENT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Students are not allowed to create projects.",
+        )
+
     _ensure_project_category(db, payload.category_id)
     _validate_project_dates(payload.start_date, payload.end_date)
 

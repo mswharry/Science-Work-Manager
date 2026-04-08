@@ -14,6 +14,16 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class LecturerLookupOut(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    staff_id: str | None = None
+    department: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserApproveRequest(BaseModel):
     is_approved: bool
     role: str

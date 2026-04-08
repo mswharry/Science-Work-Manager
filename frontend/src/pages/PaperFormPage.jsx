@@ -4,21 +4,28 @@ import ErrorState from "../components/common/ErrorState";
 import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import PaperForm from "../components/papers/PaperForm";
+import { useAuth } from "../contexts/AuthContext";
 import { listPaperCategories } from "../services/categoryService";
 import { createPaper, getPaper, updatePaper } from "../services/paperService";
 import { uploadPaperFile } from "../services/uploadService";
+import { listLecturers } from "../services/userService";
 import { getApiErrorMessage } from "../utils/apiError";
-import { CATEGORY_ACCESS_NOTE } from "../utils/constants";
+import { CATEGORY_ACCESS_NOTE, ROLES } from "../utils/constants";
 
 export default function PaperFormPage({ mode }) {
   const { paperId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isStudent = user?.role === ROLES.STUDENT;
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [lecturers, setLecturers] = useState([]);
   const [categoryMode, setCategoryMode] = useState("select");
   const [categoryNote, setCategoryNote] = useState("");
+  const [lecturerNote, setLecturerNote] = useState("Chọn giảng viên hướng dẫn phù hợp từ danh sách hiện có.");
   const [pageLoading, setPageLoading] = useState(mode === "edit");
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [lecturersLoading, setLecturersLoading] = useState(isStudent);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,8 +58,33 @@ export default function PaperFormPage({ mode }) {
     }
   };
 
+  const loadLecturers = async () => {
+    if (!isStudent) {
+      setLecturers([]);
+      setLecturersLoading(false);
+      return;
+    }
+
+    setLecturersLoading(true);
+    try {
+      const data = await listLecturers();
+      setLecturers(data);
+      setLecturerNote(
+        data.length
+          ? "Chỉ hiển thị các giảng viên đã được phê duyệt và đang hoạt động trong hệ thống."
+          : "Hiện chưa có giảng viên khả dụng để gán hướng dẫn. Vui lòng liên hệ quản trị viên.",
+      );
+    } catch (requestError) {
+      setLecturers([]);
+      setLecturerNote(getApiErrorMessage(requestError, "Không thể tải danh sách giảng viên hướng dẫn."));
+    } finally {
+      setLecturersLoading(false);
+    }
+  };
+
   useEffect(() => { loadPaperData(); }, [mode, paperId]);
   useEffect(() => { loadCategories(); }, []);
+  useEffect(() => { loadLecturers(); }, [isStudent]);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
@@ -89,7 +121,15 @@ export default function PaperFormPage({ mode }) {
 
   return (
     <div className="stack-xl">
-      <PageHeader eyebrow="Bài báo" title={mode === "edit" ? "Chỉnh sửa bài báo" : "Khai báo bài báo mới"} description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học, bao gồm cả tệp đính kèm trực tiếp nếu có." />
+      <PageHeader
+        eyebrow="Bài báo"
+        title={mode === "edit" ? "Chỉnh sửa bài báo" : "Khai báo bài báo mới"}
+        description={
+          isStudent
+            ? "Sinh viên khai báo bài báo cần chọn đầy đủ giảng viên hướng dẫn, thông tin xuất bản và tệp đính kèm tương ứng."
+            : "Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học, bao gồm cả tệp đính kèm trực tiếp nếu có."
+        }
+      />
       <PaperForm
         initialValues={initialValues}
         mode={mode}
@@ -97,6 +137,10 @@ export default function PaperFormPage({ mode }) {
         categoriesLoading={categoriesLoading}
         categoryMode={categoryMode}
         categoryNote={categoryNote}
+        requireSupervisor={isStudent}
+        lecturers={lecturers}
+        lecturersLoading={lecturersLoading}
+        lecturerNote={lecturerNote}
         onSubmit={handleSubmit}
         onCancel={() => navigate(mode === "edit" ? `/papers/${paperId}` : "/papers")}
         submitting={submitting}

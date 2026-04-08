@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CATEGORY_ACCESS_NOTE } from "../../utils/constants";
 import { normalizeOptionalNumber, normalizeOptionalText } from "../../utils/formatters";
 import FormField from "../common/FormField";
@@ -15,6 +15,7 @@ function createDefaultForm(initialValues) {
     pages: initialValues?.pages || "",
     doi: initialValues?.doi || "",
     file_url: initialValues?.file_url || "",
+    supervisor_lecturer_id: initialValues?.supervisor_lecturer_id || "",
     file_upload: null,
   };
 }
@@ -26,6 +27,10 @@ export default function PaperForm({
   categoriesLoading,
   categoryMode,
   categoryNote,
+  requireSupervisor,
+  lecturers,
+  lecturersLoading,
+  lecturerNote,
   onSubmit,
   onCancel,
   submitting,
@@ -36,6 +41,11 @@ export default function PaperForm({
   useEffect(() => {
     setForm(createDefaultForm(initialValues));
   }, [initialValues]);
+
+  const selectedLecturer = useMemo(
+    () => lecturers.find((item) => String(item.id) === String(form.supervisor_lecturer_id)),
+    [lecturers, form.supervisor_lecturer_id],
+  );
 
   const handleChange = (field, value) => {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -54,6 +64,7 @@ export default function PaperForm({
       pages: normalizeOptionalText(form.pages),
       doi: normalizeOptionalText(form.doi),
       file_url: normalizeOptionalText(form.file_url),
+      supervisor_lecturer_id: form.supervisor_lecturer_id ? Number(form.supervisor_lecturer_id) : null,
       file_upload: form.file_upload || null,
     });
   };
@@ -116,6 +127,45 @@ export default function PaperForm({
         </div>
       </section>
 
+      {requireSupervisor ? (
+        <section className="form-section stack-md">
+          <div className="section-heading">
+            <div>
+              <h2 className="section-title">Giảng viên hướng dẫn</h2>
+              <p className="section-description">Sinh viên khai báo bài báo bắt buộc phải gắn với một giảng viên hướng dẫn đang hoạt động và đã được phê duyệt.</p>
+            </div>
+          </div>
+
+          <div className="form-grid form-grid--2">
+            <FormField label="Chọn giảng viên hướng dẫn" required hint={lecturersLoading ? "Đang tải danh sách giảng viên..." : lecturerNote}>
+              <select
+                className="input"
+                value={form.supervisor_lecturer_id}
+                onChange={(event) => handleChange("supervisor_lecturer_id", event.target.value)}
+                disabled={lecturersLoading}
+                required
+              >
+                <option value="">Chọn giảng viên</option>
+                {lecturers.map((lecturer) => (
+                  <option key={lecturer.id} value={lecturer.id}>
+                    {lecturer.full_name}{lecturer.staff_id ? ` — ${lecturer.staff_id}` : ""}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          </div>
+
+          {selectedLecturer ? (
+            <div className="inline-note">
+              Giảng viên đã chọn: <strong>{selectedLecturer.full_name}</strong>
+              {selectedLecturer.staff_id ? ` • Mã cán bộ: ${selectedLecturer.staff_id}` : ""}
+              {selectedLecturer.email ? ` • Email: ${selectedLecturer.email}` : ""}
+              {selectedLecturer.department ? ` • Đơn vị: ${selectedLecturer.department}` : ""}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       <section className="form-section stack-md">
         <div className="section-heading">
           <div>
@@ -138,7 +188,7 @@ export default function PaperForm({
       {submitError ? <div className="notice notice--danger">{submitError}</div> : null}
 
       <div className="button-row">
-        <button type="submit" className="button" disabled={submitting}>
+        <button type="submit" className="button" disabled={submitting || (requireSupervisor && lecturersLoading)}>
           {submitting ? "Đang lưu..." : mode === "edit" ? "Lưu thay đổi" : "Tạo bài báo"}
         </button>
         <button type="button" className="button button--secondary" onClick={onCancel} disabled={submitting}>
