@@ -23,6 +23,11 @@ export async function listUsers(filters = {}) {
   return response.data;
 }
 
+export async function listLecturers() {
+  const response = await api.get("/users/lecturers");
+  return response.data;
+}
+
 export async function approveUser(userId, payload) {
   const response = await api.put(`/admin/users/${userId}/approve`, payload);
   return response.data;

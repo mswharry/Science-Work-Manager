@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, Query
 from app.api.deps import DbSession, get_current_admin_user, get_current_user
 from app.models.user import User
 from app.schemas.common import MessageResponse
-from app.schemas.user import UserApproveRequest, UserOut
-from app.services.user_service import approve_user, list_users, toggle_user_block
+from app.schemas.user import LecturerLookupOut, UserApproveRequest, UserOut
+from app.services.user_service import approve_user, list_available_lecturers, list_users, toggle_user_block
 
 router = APIRouter(tags=["users"])
 
@@ -15,6 +15,15 @@ router = APIRouter(tags=["users"])
 @router.get("/users/me", response_model=UserOut)
 def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> UserOut:
     return UserOut.model_validate(current_user)
+
+
+@router.get("/users/lecturers", response_model=list[LecturerLookupOut])
+def list_lecturers_endpoint(
+    db: DbSession,
+    _: Annotated[User, Depends(get_current_user)],
+) -> list[LecturerLookupOut]:
+    lecturers = list_available_lecturers(db=db)
+    return [LecturerLookupOut.model_validate(user) for user in lecturers]
 
 
 @router.get("/admin/users", response_model=list[UserOut])

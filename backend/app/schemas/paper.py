@@ -14,6 +14,7 @@ class PaperCreate(BaseModel):
     pages: str | None = None
     doi: str | None = None
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
 
 
 class PaperUpdate(BaseModel):
@@ -26,6 +27,7 @@ class PaperUpdate(BaseModel):
     pages: str | None = None
     doi: str | None = None
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
 
 
 class PaperReviewRequest(BaseModel):
@@ -51,6 +53,11 @@ class PaperOut(BaseModel):
     doi: str | None = None
     status: str
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
+    supervisor_full_name: str | None = None
+    supervisor_email: str | None = None
+    supervisor_staff_id: str | None = None
+    supervisor_department: str | None = None
     review_note: str | None = None
     reviewed_by: int | None = None
     reviewed_at: datetime | None = None

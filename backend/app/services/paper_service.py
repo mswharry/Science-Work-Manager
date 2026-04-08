@@ -16,14 +16,21 @@ from app.schemas.paper import AddAuthorRequest, PaperCreate, PaperReviewRequest,
 from app.services.upload_service import delete_local_upload
 
 
+SUPERVISOR_REQUIRED_MESSAGE = "Student paper requires a supervising lecturer."
+SUPERVISOR_INVALID_MESSAGE = "supervisor_lecturer_id must reference an active approved lecturer."
+SUPERVISOR_NOT_FOUND_MESSAGE = "Supervisor lecturer not found."
+
+
 def _validate_paper_status(status_value: str) -> PaperStatus:
     if status_value not in PAPER_STATUS_VALUES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid paper status.")
     return PaperStatus(status_value)
 
 
+
 def _is_paper_author_stmt(user_id: int):
     return select(PaperAuthor.id).where(PaperAuthor.paper_id == Paper.id, PaperAuthor.user_id == user_id).exists()
+
 
 
 def _ensure_paper_category(db: Session, category_id: int) -> None:
@@ -35,8 +42,46 @@ def _ensure_paper_category(db: Session, category_id: int) -> None:
         )
 
 
+
+def _resolve_supervisor_lecturer(db: Session, supervisor_lecturer_id: int | None) -> User | None:
+    if supervisor_lecturer_id is None:
+        return None
+
+    lecturer = db.get(User, supervisor_lecturer_id)
+    if not lecturer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=SUPERVISOR_NOT_FOUND_MESSAGE)
+
+    if lecturer.role != UserRole.LECTURER or not lecturer.is_active or not lecturer.is_approved:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=SUPERVISOR_INVALID_MESSAGE)
+
+    return lecturer
+
+
+
+def _apply_supervisor_snapshot(paper: Paper, lecturer: User | None) -> None:
+    if lecturer is None:
+        paper.supervisor_lecturer_id = None
+        paper.supervisor_full_name = None
+        paper.supervisor_email = None
+        paper.supervisor_staff_id = None
+        paper.supervisor_department = None
+        return
+
+    paper.supervisor_lecturer_id = lecturer.id
+    paper.supervisor_full_name = lecturer.full_name
+    paper.supervisor_email = lecturer.email
+    paper.supervisor_staff_id = lecturer.staff_id
+    paper.supervisor_department = lecturer.department
+
+
+
 def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper:
     _ensure_paper_category(db, payload.category_id)
+
+    if current_user.role == UserRole.STUDENT and payload.supervisor_lecturer_id is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=SUPERVISOR_REQUIRED_MESSAGE)
+
+    supervisor = _resolve_supervisor_lecturer(db, payload.supervisor_lecturer_id)
 
     try:
         paper = Paper(
@@ -51,6 +96,7 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
             file_url=payload.file_url,
             status=PaperStatus.PENDING,
         )
+        _apply_supervisor_snapshot(paper, supervisor)
         db.add(paper)
         db.flush()
 
@@ -70,6 +116,7 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
 
     db.refresh(paper)
     return paper
+
 
 
 def list_papers(
@@ -102,11 +149,13 @@ def list_papers(
     return list(db.scalars(stmt))
 
 
+
 def get_paper_by_id(db: Session, paper_id: int) -> Paper:
     paper = db.get(Paper, paper_id)
     if not paper:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found.")
     return paper
+
 
 
 def _can_view_paper(db: Session, paper: Paper, current_user: User) -> bool:
@@ -118,11 +167,13 @@ def _can_view_paper(db: Session, paper: Paper, current_user: User) -> bool:
     return is_author is not None
 
 
+
 def get_paper_detail(db: Session, paper_id: int, current_user: User) -> Paper:
     paper = get_paper_by_id(db, paper_id)
     if not _can_view_paper(db, paper, current_user):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to view this paper.")
     return paper
+
 
 
 def _ensure_paper_editable(db: Session, paper: Paper, current_user: User) -> None:
@@ -137,6 +188,7 @@ def _ensure_paper_editable(db: Session, paper: Paper, current_user: User) -> Non
         )
 
 
+
 def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user: User) -> Paper:
     paper = get_paper_by_id(db, paper_id)
     _ensure_paper_editable(db, paper, current_user)
@@ -145,10 +197,22 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
     if "category_id" in values and values["category_id"] is not None:
         _ensure_paper_category(db, values["category_id"])
 
-    if 'file_url' in values and values['file_url'] != paper.file_url:
+    if "file_url" in values and values["file_url"] != paper.file_url:
         delete_local_upload(paper.file_url)
 
+    supervisor_changed = "supervisor_lecturer_id" in values
+    supervisor_id = values.get("supervisor_lecturer_id", paper.supervisor_lecturer_id)
+
+    if current_user.role == UserRole.STUDENT and supervisor_id is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=SUPERVISOR_REQUIRED_MESSAGE)
+
+    if supervisor_changed:
+        supervisor = _resolve_supervisor_lecturer(db, values["supervisor_lecturer_id"])
+        _apply_supervisor_snapshot(paper, supervisor)
+
     for field, value in values.items():
+        if field == "supervisor_lecturer_id":
+            continue
         setattr(paper, field, value)
 
     if paper.status == PaperStatus.REJECTED:
@@ -167,12 +231,14 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
     return paper
 
 
+
 def delete_paper(db: Session, paper_id: int, current_user: User) -> None:
     paper = get_paper_by_id(db, paper_id)
     _ensure_paper_editable(db, paper, current_user)
     delete_local_upload(paper.file_url)
     db.delete(paper)
     db.commit()
+
 
 
 def review_paper(db: Session, paper_id: int, payload: PaperReviewRequest, admin_user: User) -> Paper:
@@ -194,6 +260,7 @@ def review_paper(db: Session, paper_id: int, payload: PaperReviewRequest, admin_
     db.commit()
     db.refresh(paper)
     return paper
+
 
 
 def add_paper_author(db: Session, paper_id: int, payload: AddAuthorRequest, current_user: User) -> None:

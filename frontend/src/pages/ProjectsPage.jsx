@@ -9,6 +9,7 @@ import ProjectList from "../components/projects/ProjectList";
 import { useAuth } from "../contexts/AuthContext";
 import { deleteProject, listProjects } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
+import { ROLES } from "../utils/constants";
 import { countByStatus } from "../utils/formatters";
 
 const DEFAULT_FILTERS = {
@@ -26,6 +27,8 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+
+  const canCreateProject = user?.role === ROLES.ADMIN || user?.role === ROLES.LECTURER;
 
   const loadData = async (activeFilters = filters) => {
     setLoading(true);
@@ -73,11 +76,15 @@ export default function ProjectsPage() {
         title="Quản lý đề tài nghiên cứu"
         description="Tra cứu, lọc và quản lý các đề tài mà bạn được phép truy cập. Các thao tác chỉnh sửa chỉ hiển thị khi đúng quyền và trạng thái hồ sơ."
         actions={
-          <Link to="/projects/new" className="button nav-button-link">
-            Tạo đề tài mới
-          </Link>
+          canCreateProject ? (
+            <Link to="/projects/new" className="button nav-button-link">
+              Tạo đề tài mới
+            </Link>
+          ) : null
         }
       />
+
+      {!canCreateProject ? <div className="notice notice--info">Tài khoản sinh viên chỉ được theo dõi đề tài có liên quan và không thể tự tạo đề tài mới.</div> : null}
 
       <MetricStrip
         items={[

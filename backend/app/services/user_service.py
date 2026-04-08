@@ -1,4 +1,5 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from fastapi import HTTPException, status
 from sqlalchemy import Select, select
 from sqlalchemy.exc import IntegrityError
@@ -29,11 +30,27 @@ def list_users(
     return list(db.scalars(stmt))
 
 
+
+def list_available_lecturers(db: Session) -> list[User]:
+    stmt: Select[tuple[User]] = (
+        select(User)
+        .where(
+            User.role == UserRole.LECTURER,
+            User.is_active.is_(True),
+            User.is_approved.is_(True),
+        )
+        .order_by(User.full_name.asc(), User.id.asc())
+    )
+    return list(db.scalars(stmt))
+
+
+
 def get_user_by_id(db: Session, user_id: int) -> User:
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     return user
+
 
 
 def approve_user(db: Session, user_id: int, payload: UserApproveRequest) -> User:
@@ -60,10 +77,10 @@ def approve_user(db: Session, user_id: int, payload: UserApproveRequest) -> User
     return user
 
 
+
 def toggle_user_block(db: Session, user_id: int) -> User:
     user = get_user_by_id(db, user_id)
     user.is_active = not user.is_active
     db.commit()
     db.refresh(user)
     return user
-

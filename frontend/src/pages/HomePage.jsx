@@ -39,8 +39,8 @@ const workflowNotes = {
     "Sử dụng bảng điều khiển để theo dõi tiến độ xử lý và số liệu tổng hợp cá nhân.",
   ],
   student: [
-    "Theo dõi đề tài và bài báo cá nhân trực tiếp từ trang chủ hoặc bảng điều khiển.",
-    "Khi hồ sơ bị từ chối, chỉnh sửa theo ghi chú rồi gửi lại từ màn hình cập nhật.",
+    "Sinh viên không tự tạo đề tài mới mà theo dõi các đề tài có liên quan trên hệ thống.",
+    "Khai báo bài báo cần gắn với giảng viên hướng dẫn đang hoạt động trong hệ thống.",
     "Kiểm tra thông báo thường xuyên để không bỏ lỡ hạn nộp hoặc yêu cầu bổ sung.",
   ],
 };
@@ -59,10 +59,10 @@ const roleActions = {
     { to: "/papers", label: "Quản lý bài báo", description: "Rà soát hồ sơ bài báo, DOI và phản hồi từ quản trị viên." },
   ],
   student: [
-    { to: "/projects/new", label: "Đăng ký đề tài", description: "Khởi tạo hồ sơ đề tài nghiên cứu mới trên hệ thống." },
-    { to: "/papers/new", label: "Khai báo bài báo", description: "Cập nhật hồ sơ bài báo và theo dõi kết quả xử lý." },
-    { to: "/projects", label: "Xem đề tài của tôi", description: "Lọc danh sách đề tài cá nhân và kiểm tra trạng thái hiện tại." },
+    { to: "/papers/new", label: "Khai báo bài báo", description: "Tạo hồ sơ bài báo mới và khai báo giảng viên hướng dẫn bắt buộc." },
+    { to: "/projects", label: "Theo dõi đề tài", description: "Xem các đề tài có liên quan và trạng thái xử lý hiện tại." },
     { to: "/papers", label: "Xem bài báo của tôi", description: "Tra cứu bài báo đã khai báo và các lần cập nhật gần đây." },
+    { to: "/dashboard", label: "Mở bảng điều khiển", description: "Theo dõi thông báo, trạng thái xử lý và số liệu cá nhân." },
   ],
 };
 
