@@ -1,4 +1,5 @@
 import { formatDateTime, truncateText } from "../../utils/formatters";
+import { TARGET_ROLE_LABELS } from "../../utils/constants";
 import StatusBadge from "../common/StatusBadge";
 
 export default function NotificationFeed({
@@ -49,7 +50,7 @@ export default function NotificationFeed({
                 </div>
               </div>
               <div className="list-item__meta">
-                <span>Thông báo #{item.id}</span>
+                <span>{item.target_role ? `Đối tượng: ${TARGET_ROLE_LABELS[item.target_role] || item.target_role}` : "Thông báo hệ thống"}</span>
                 <span>Phát hành lúc {formatDateTime(item.created_at)}</span>
                 <span>{item.is_active ? "Đang hiển thị" : "Đã ẩn"}</span>
               </div>

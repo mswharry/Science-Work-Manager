@@ -19,6 +19,10 @@ export async function listProjects(filters = {}) {
     params.mine = true;
   }
 
+  if (filters.completion_requested !== undefined && filters.completion_requested !== null) {
+    params.completion_requested = filters.completion_requested;
+  }
+
   const response = await api.get("/projects", { params });
   return response.data;
 }
@@ -40,6 +44,11 @@ export async function updateProject(projectId, payload) {
 
 export async function deleteProject(projectId) {
   const response = await api.delete(`/projects/${projectId}`);
+  return response.data;
+}
+
+export async function requestProjectCompletion(projectId) {
+  const response = await api.put(`/projects/${projectId}/request-completion`);
   return response.data;
 }
 

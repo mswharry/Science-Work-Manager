@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { formatDateTime, truncateText } from "../../utils/formatters";
+import { formatDateTime, formatPaperRecordCode, resolvePaperCategoryName, resolvePaperCreatorName, truncateText } from "../../utils/formatters";
 import { canManagePaperFromList } from "../../utils/permissions";
 import EmptyState from "../common/EmptyState";
 import StatusBadge from "../common/StatusBadge";
@@ -44,13 +44,14 @@ export default function PaperList({ papers, currentUser, deletingId, onDelete, i
                 <tr key={paper.id}>
                   <td>
                     <div className="table-primary">{paper.title}</div>
-                    <div className="table-secondary">Mã hồ sơ: #{paper.id}</div>
+                    <div className="table-secondary">Mã hồ sơ: {formatPaperRecordCode(paper)}</div>
+                    <div className="table-secondary">Người khai báo: {resolvePaperCreatorName(paper)}</div>
                     {paper.review_note ? <div className="table-note">Ghi chú duyệt: {truncateText(paper.review_note, 88)}</div> : null}
                   </td>
                   <td>
                     <StatusBadge value={paper.status} />
                   </td>
-                  <td>Danh mục #{paper.category_id}</td>
+                  <td>{resolvePaperCategoryName(paper)}</td>
                   <td>
                     <div>{paper.journal_name || "—"}</div>
                     <div className="table-secondary">{paper.doi ? `DOI: ${paper.doi}` : "Chưa có DOI"}</div>

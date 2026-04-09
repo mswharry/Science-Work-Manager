@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { approveUser, listUsers, toggleUserBlock } from "../../services/userService";
 import { ROLE_OPTIONS, ROLES } from "../../utils/constants";
 import { getApiErrorMessage } from "../../utils/apiError";
+import { resolveIdentityCode } from "../../utils/formatters";
 import StatusBadge from "../common/StatusBadge";
 import FormField from "../common/FormField";
 
@@ -192,7 +193,8 @@ export default function UserManagementPanel() {
                       <td>
                         <div className="table-primary">{user.full_name}</div>
                         <div className="table-secondary">{user.email}</div>
-                        <div className="table-secondary">Người dùng #{user.id}</div>
+                        <div className="table-secondary">Mã: {resolveIdentityCode(user.staff_id, user.student_id)}</div>
+                        {user.department ? <div className="table-secondary">Đơn vị: {user.department}</div> : null}
                       </td>
                       <td>
                         <StatusBadge value={user.role} kind="role" />

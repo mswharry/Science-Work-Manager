@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
@@ -13,6 +14,7 @@ from app.services.project_service import (
     delete_project,
     get_project_detail,
     list_projects,
+    request_project_completion,
     review_project,
     update_project,
 )
@@ -38,6 +40,7 @@ def list_projects_endpoint(
     year: int | None = Query(default=None),
     keyword: str | None = Query(default=None),
     mine: bool | None = Query(default=None),
+    completion_requested: bool | None = Query(default=None),
 ) -> list[ProjectOut]:
     projects = list_projects(
         db=db,
@@ -46,6 +49,7 @@ def list_projects_endpoint(
         year=year,
         keyword=keyword,
         mine=mine,
+        completion_requested=completion_requested,
     )
     return [ProjectOut.model_validate(project) for project in projects]
 
@@ -79,6 +83,16 @@ def delete_project_endpoint(
 ) -> MessageResponse:
     delete_project(db=db, project_id=project_id, current_user=current_user)
     return MessageResponse(message="Project deleted successfully")
+
+
+@router.put("/projects/{project_id}/request-completion", response_model=ProjectOut)
+def request_project_completion_endpoint(
+    project_id: int,
+    db: DbSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ProjectOut:
+    project = request_project_completion(db=db, project_id=project_id, current_user=current_user)
+    return ProjectOut.model_validate(project)
 
 
 @router.put("/admin/projects/{project_id}/review", response_model=ProjectOut)

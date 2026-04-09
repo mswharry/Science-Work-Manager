@@ -151,3 +151,47 @@ export function sortByDateDesc(items = [], key = "updated_at") {
     return secondDate - firstDate;
   });
 }
+
+export function formatRecordCode(prefix, value) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) {
+    return `${prefix}-${value}`;
+  }
+
+  return `${prefix}-${String(numeric).padStart(4, "0")}`;
+}
+
+export function formatProjectRecordCode(project) {
+  if (project?.code) {
+    return project.code;
+  }
+  return formatRecordCode("DT", project?.id);
+}
+
+export function formatPaperRecordCode(paper) {
+  return formatRecordCode("BB", paper?.id);
+}
+
+export function resolveIdentityCode(staffId, studentId) {
+  return staffId || studentId || "—";
+}
+
+export function resolveProjectCategoryName(project) {
+  return project?.category_name || "—";
+}
+
+export function resolveProjectLeaderName(project) {
+  return project?.leader_name || "—";
+}
+
+export function resolvePaperCategoryName(paper) {
+  return paper?.category_name || "—";
+}
+
+export function resolvePaperCreatorName(paper) {
+  return paper?.creator_name || "—";
+}

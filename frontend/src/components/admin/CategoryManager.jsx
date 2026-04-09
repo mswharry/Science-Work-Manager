@@ -235,7 +235,7 @@ export default function CategoryManager() {
         <div className="inline-note stack-md">
           <div className="section-heading">
             <div>
-              <h3 className="section-title">Chỉnh sửa danh mục #{editingItem.id}</h3>
+              <h3 className="section-title">Chỉnh sửa danh mục: {editingItem.name}</h3>
               <p className="section-description">Cập nhật thông tin hiển thị cho danh mục đang chọn.</p>
             </div>
           </div>

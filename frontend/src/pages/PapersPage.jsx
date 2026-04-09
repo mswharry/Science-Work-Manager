@@ -10,6 +10,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { deletePaper, listPapers } from "../services/paperService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { countByStatus } from "../utils/formatters";
+import { canCreatePaper } from "../utils/permissions";
 
 const DEFAULT_FILTERS = {
   year: "",
@@ -71,11 +72,13 @@ export default function PapersPage() {
       <PageHeader
         eyebrow="Bài báo"
         title="Quản lý bài báo khoa học"
-        description="Tra cứu, lọc và quản lý các bài báo mà bạn được phép xem hoặc chỉnh sửa theo trạng thái và quyền hiện tại."
+        description="Tra cứu, lọc và quản lý các bài báo mà bạn được phép xem hoặc chỉnh sửa theo trạng thái và quyền hiện tại. Quản trị viên chỉ có quyền rà soát, không trực tiếp khai báo hồ sơ bài báo."
         actions={
-          <Link to="/papers/new" className="button nav-button-link">
-            Khai báo bài báo mới
-          </Link>
+          canCreatePaper(user) ? (
+            <Link to="/papers/new" className="button nav-button-link">
+              Khai báo bài báo mới
+            </Link>
+          ) : null
         }
       />
 

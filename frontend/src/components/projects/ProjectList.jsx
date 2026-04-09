@@ -1,10 +1,18 @@
 import { Link } from "react-router-dom";
-import { canManageProject } from "../../utils/permissions";
-import { formatCurrency, formatDate, formatDateTime, truncateText } from "../../utils/formatters";
+import { canManageProject, canRequestProjectCompletion } from "../../utils/permissions";
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatProjectRecordCode,
+  resolveProjectCategoryName,
+  resolveProjectLeaderName,
+  truncateText,
+} from "../../utils/formatters";
 import EmptyState from "../common/EmptyState";
 import StatusBadge from "../common/StatusBadge";
 
-export default function ProjectList({ projects, currentUser, deletingId, onDelete }) {
+export default function ProjectList({ projects, currentUser, deletingId, requestingId, onDelete, onRequestCompletion }) {
   if (!projects.length) {
     return (
       <EmptyState
@@ -39,21 +47,25 @@ export default function ProjectList({ projects, currentUser, deletingId, onDelet
           <tbody>
             {projects.map((project) => {
               const canManage = canManageProject(project, currentUser);
+              const canRequestCompletion = canRequestProjectCompletion(project, currentUser);
 
               return (
                 <tr key={project.id}>
                   <td>
                     <div className="table-primary">{project.name}</div>
-                    <div className="table-secondary">Mã hồ sơ: {project.code || `#${project.id}`}</div>
-                    <div className="table-secondary">Chủ nhiệm: Người dùng #{project.leader_id}</div>
+                    <div className="table-secondary">Mã hồ sơ: {formatProjectRecordCode(project)}</div>
+                    <div className="table-secondary">Chủ nhiệm: {resolveProjectLeaderName(project)}</div>
                     {project.review_note ? (
                       <div className="table-note">Ghi chú duyệt: {truncateText(project.review_note, 88)}</div>
+                    ) : null}
+                    {project.completion_requested ? (
+                      <div className="table-note">Đã gửi yêu cầu xác nhận hoàn thành vào {formatDateTime(project.completion_requested_at)}</div>
                     ) : null}
                   </td>
                   <td>
                     <StatusBadge value={project.status} />
                   </td>
-                  <td>Danh mục #{project.category_id}</td>
+                  <td>{resolveProjectCategoryName(project)}</td>
                   <td>{formatCurrency(project.budget)}</td>
                   <td>
                     <div>{formatDate(project.start_date)}</div>
@@ -65,6 +77,16 @@ export default function ProjectList({ projects, currentUser, deletingId, onDelet
                       <Link to={`/projects/${project.id}`} className="button button--secondary button--small nav-button-link">
                         Chi tiết
                       </Link>
+                      {canRequestCompletion ? (
+                        <button
+                          type="button"
+                          className="button button--small"
+                          disabled={requestingId === project.id}
+                          onClick={() => onRequestCompletion(project.id)}
+                        >
+                          {requestingId === project.id ? "Đang gửi..." : "Hoàn thành"}
+                        </button>
+                      ) : null}
                       {canManage ? (
                         <>
                           <Link

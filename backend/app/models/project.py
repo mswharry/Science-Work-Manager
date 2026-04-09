@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.constants import ProjectStatus
@@ -33,9 +33,12 @@ class Project(Base, TimestampMixin):
     review_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completion_requested: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
+    completion_requested_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completion_requested_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     category = relationship("Category", back_populates="projects")
     leader = relationship("User", back_populates="led_projects", foreign_keys=[leader_id])
     reviewer = relationship("User", back_populates="reviewed_projects", foreign_keys=[reviewed_by])
+    completion_requester = relationship("User", foreign_keys=[completion_requested_by])
     members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
-

@@ -24,23 +24,29 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+RUNTIME_MIGRATIONS = {
+    "papers": {
+        "created_by": "INTEGER",
+        "supervisor_lecturer_id": "INTEGER",
+        "supervisor_full_name": "VARCHAR(255)",
+        "supervisor_email": "VARCHAR(255)",
+        "supervisor_staff_id": "VARCHAR(50)",
+        "supervisor_department": "VARCHAR(255)",
+    },
+    "projects": {
+        "completion_requested": "BOOLEAN DEFAULT 0",
+        "completion_requested_at": "DATETIME",
+        "completion_requested_by": "INTEGER",
+    },
+}
+
 
 def ensure_runtime_schema() -> None:
-    migrations = {
-        "papers": {
-            "supervisor_lecturer_id": "INTEGER",
-            "supervisor_full_name": "VARCHAR(255)",
-            "supervisor_email": "VARCHAR(255)",
-            "supervisor_staff_id": "VARCHAR(50)",
-            "supervisor_department": "VARCHAR(255)",
-        }
-    }
-
     with engine.begin() as connection:
         inspector = inspect(connection)
         existing_tables = set(inspector.get_table_names())
 
-        for table_name, columns in migrations.items():
+        for table_name, columns in RUNTIME_MIGRATIONS.items():
             if table_name not in existing_tables:
                 continue
 
@@ -50,7 +56,6 @@ def ensure_runtime_schema() -> None:
                     continue
                 connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
                 existing_columns.add(column_name)
-
 
 
 def create_all_tables() -> None:

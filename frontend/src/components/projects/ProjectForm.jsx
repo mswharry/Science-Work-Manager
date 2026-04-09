@@ -68,7 +68,7 @@ export default function ProjectForm({ initialValues, mode, categories, categorie
                 <option value="">Chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    #{category.id} — {category.name}
+                    {category.name}
                   </option>
                 ))}
               </select>
