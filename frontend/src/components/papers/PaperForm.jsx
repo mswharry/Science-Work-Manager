@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORY_ACCESS_NOTE } from "../../utils/constants";
-import { normalizeOptionalNumber, normalizeOptionalText } from "../../utils/formatters";
+import { CATEGORY_ACCESS_NOTE, ROLES } from "../../utils/constants";
+import { normalizeOptionalNumber, normalizeOptionalText, resolveIdentityCode } from "../../utils/formatters";
 import FormField from "../common/FormField";
 import FileAttachmentField from "../common/FileAttachmentField";
 
@@ -27,10 +27,9 @@ export default function PaperForm({
   categoriesLoading,
   categoryMode,
   categoryNote,
-  requireSupervisor,
+  currentUser,
   lecturers,
   lecturersLoading,
-  lecturerNote,
   onSubmit,
   onCancel,
   submitting,
@@ -42,14 +41,16 @@ export default function PaperForm({
     setForm(createDefaultForm(initialValues));
   }, [initialValues]);
 
-  const selectedLecturer = useMemo(
-    () => lecturers.find((item) => String(item.id) === String(form.supervisor_lecturer_id)),
-    [lecturers, form.supervisor_lecturer_id],
-  );
-
   const handleChange = (field, value) => {
     setForm((previous) => ({ ...previous, [field]: value }));
   };
+
+  const selectedLecturer = useMemo(
+    () => lecturers.find((lecturer) => String(lecturer.id) === String(form.supervisor_lecturer_id)),
+    [form.supervisor_lecturer_id, lecturers],
+  );
+
+  const isStudent = currentUser?.role === ROLES.STUDENT;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -64,13 +65,80 @@ export default function PaperForm({
       pages: normalizeOptionalText(form.pages),
       doi: normalizeOptionalText(form.doi),
       file_url: normalizeOptionalText(form.file_url),
-      supervisor_lecturer_id: form.supervisor_lecturer_id ? Number(form.supervisor_lecturer_id) : null,
+      supervisor_lecturer_id: isStudent ? Number(form.supervisor_lecturer_id) : null,
       file_upload: form.file_upload || null,
     });
   };
 
   return (
     <form className="panel form-panel stack-lg" onSubmit={handleSubmit}>
+      <section className="form-section stack-md">
+        <div className="section-heading">
+          <div>
+            <h2 className="section-title">Người khai báo</h2>
+            <p className="section-description">Thông tin tài khoản đang thực hiện khai báo hồ sơ bài báo.</p>
+          </div>
+        </div>
+
+        <div className="form-grid form-grid--3">
+          <FormField label="Họ và tên">
+            <input className="input" value={currentUser?.full_name || ""} disabled readOnly />
+          </FormField>
+          <FormField label="Email">
+            <input className="input" value={currentUser?.email || ""} disabled readOnly />
+          </FormField>
+          <FormField label="Mã cán bộ / mã sinh viên">
+            <input className="input" value={resolveIdentityCode(currentUser?.staff_id, currentUser?.student_id)} disabled readOnly />
+          </FormField>
+        </div>
+      </section>
+
+      {isStudent ? (
+        <section className="form-section stack-md">
+          <div className="section-heading">
+            <div>
+              <h2 className="section-title">Giảng viên hướng dẫn</h2>
+              <p className="section-description">Sinh viên bắt buộc phải chọn giảng viên hướng dẫn khi khai báo bài báo mới.</p>
+            </div>
+          </div>
+
+          <div className="form-grid form-grid--2">
+            <FormField
+              label="Giảng viên hướng dẫn"
+              required
+              hint={lecturersLoading ? "Đang tải danh sách giảng viên..." : "Chỉ hiển thị các giảng viên đang hoạt động và đã được phê duyệt."}
+            >
+              <select
+                className="input"
+                value={form.supervisor_lecturer_id}
+                onChange={(event) => handleChange("supervisor_lecturer_id", event.target.value)}
+                disabled={lecturersLoading}
+                required
+              >
+                <option value="">Chọn giảng viên hướng dẫn</option>
+                {lecturers.map((lecturer) => (
+                  <option key={lecturer.id} value={lecturer.id}>
+                    {lecturer.full_name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+
+            <FormField label="Mã cán bộ giảng viên">
+              <input className="input" value={selectedLecturer?.staff_id || "—"} disabled readOnly />
+            </FormField>
+
+            <FormField label="Email giảng viên">
+              <input className="input" value={selectedLecturer?.email || "—"} disabled readOnly />
+            </FormField>
+
+            <FormField label="Đơn vị công tác">
+              <input className="input" value={selectedLecturer?.department || "—"} disabled readOnly />
+            </FormField>
+          </div>
+        </section>
+      ) : null}
+
       <section className="form-section stack-md">
         <div className="section-heading">
           <div>
@@ -90,7 +158,7 @@ export default function PaperForm({
                 <option value="">Chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    #{category.id} — {category.name}
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -127,45 +195,6 @@ export default function PaperForm({
         </div>
       </section>
 
-      {requireSupervisor ? (
-        <section className="form-section stack-md">
-          <div className="section-heading">
-            <div>
-              <h2 className="section-title">Giảng viên hướng dẫn</h2>
-              <p className="section-description">Sinh viên khai báo bài báo bắt buộc phải gắn với một giảng viên hướng dẫn đang hoạt động và đã được phê duyệt.</p>
-            </div>
-          </div>
-
-          <div className="form-grid form-grid--2">
-            <FormField label="Chọn giảng viên hướng dẫn" required hint={lecturersLoading ? "Đang tải danh sách giảng viên..." : lecturerNote}>
-              <select
-                className="input"
-                value={form.supervisor_lecturer_id}
-                onChange={(event) => handleChange("supervisor_lecturer_id", event.target.value)}
-                disabled={lecturersLoading}
-                required
-              >
-                <option value="">Chọn giảng viên</option>
-                {lecturers.map((lecturer) => (
-                  <option key={lecturer.id} value={lecturer.id}>
-                    {lecturer.full_name}{lecturer.staff_id ? ` — ${lecturer.staff_id}` : ""}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          </div>
-
-          {selectedLecturer ? (
-            <div className="inline-note">
-              Giảng viên đã chọn: <strong>{selectedLecturer.full_name}</strong>
-              {selectedLecturer.staff_id ? ` • Mã cán bộ: ${selectedLecturer.staff_id}` : ""}
-              {selectedLecturer.email ? ` • Email: ${selectedLecturer.email}` : ""}
-              {selectedLecturer.department ? ` • Đơn vị: ${selectedLecturer.department}` : ""}
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
       <section className="form-section stack-md">
         <div className="section-heading">
           <div>
@@ -188,7 +217,7 @@ export default function PaperForm({
       {submitError ? <div className="notice notice--danger">{submitError}</div> : null}
 
       <div className="button-row">
-        <button type="submit" className="button" disabled={submitting || (requireSupervisor && lecturersLoading)}>
+        <button type="submit" className="button" disabled={submitting}>
           {submitting ? "Đang lưu..." : mode === "edit" ? "Lưu thay đổi" : "Tạo bài báo"}
         </button>
         <button type="button" className="button button--secondary" onClick={onCancel} disabled={submitting}>

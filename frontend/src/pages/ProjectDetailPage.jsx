@@ -5,21 +5,29 @@ import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import StatusBadge from "../components/common/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
-import { deleteProject, getProject } from "../services/projectService";
+import { deleteProject, getProject, requestProjectCompletion } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { buildAssetUrl } from "../services/uploadService";
-import { formatCurrency, formatDate, formatDateTime } from "../utils/formatters";
-import { canManageProject } from "../utils/permissions";
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatProjectRecordCode,
+  resolveProjectCategoryName,
+  resolveProjectLeaderName,
+} from "../utils/formatters";
+import { canManageProject, canRequestProjectCompletion } from "../utils/permissions";
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [requesting, setRequesting] = useState(false);
 
   const loadProjectData = async () => {
     setLoading(true);
@@ -58,6 +66,25 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleRequestCompletion = async () => {
+    const confirmed = window.confirm("Gửi yêu cầu xác nhận hoàn thành đề tài này tới quản trị viên?");
+    if (!confirmed) {
+      return;
+    }
+
+    setRequesting(true);
+    setActionError("");
+
+    try {
+      const updated = await requestProjectCompletion(projectId);
+      setProject(updated);
+    } catch (requestError) {
+      setActionError(getApiErrorMessage(requestError, "Không thể gửi yêu cầu hoàn thành đề tài."));
+    } finally {
+      setRequesting(false);
+    }
+  };
+
   if (loading) {
     return <LoadingState title="Đang tải đề tài" message="Hệ thống đang lấy thông tin chi tiết đề tài." />;
   }
@@ -67,11 +94,12 @@ export default function ProjectDetailPage() {
   }
 
   const canManage = canManageProject(project, user);
+  const canRequestCompletion = canRequestProjectCompletion(project, user);
 
   return (
     <div className="stack-xl">
       <PageHeader
-        eyebrow={`Đề tài #${project.id}`}
+        eyebrow="Hồ sơ đề tài"
         title={project.name}
         description="Thông tin chi tiết hồ sơ đề tài và trạng thái xử lý hiện tại."
         actions={
@@ -79,6 +107,11 @@ export default function ProjectDetailPage() {
             <Link to="/projects" className="button button--secondary nav-button-link">
               Quay lại danh sách
             </Link>
+            {canRequestCompletion ? (
+              <button type="button" className="button" onClick={handleRequestCompletion} disabled={requesting}>
+                {requesting ? "Đang gửi..." : "Gửi yêu cầu hoàn thành"}
+              </button>
+            ) : null}
             {canManage ? (
               <>
                 <Link to={`/projects/${project.id}/edit`} className="button nav-button-link">
@@ -108,15 +141,15 @@ export default function ProjectDetailPage() {
           <div className="key-value-list">
             <div className="key-value-list__item">
               <span className="key-value-list__label">Mã hồ sơ</span>
-              <span className="key-value-list__value">{project.code || `#${project.id}`}</span>
+              <span className="key-value-list__value">{formatProjectRecordCode(project)}</span>
             </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Danh mục</span>
-              <span className="key-value-list__value">Danh mục #{project.category_id}</span>
+              <span className="key-value-list__value">{resolveProjectCategoryName(project)}</span>
             </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Chủ nhiệm</span>
-              <span className="key-value-list__value">Người dùng #{project.leader_id}</span>
+              <span className="key-value-list__value">{resolveProjectLeaderName(project)}</span>
             </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Kinh phí</span>
@@ -142,10 +175,6 @@ export default function ProjectDetailPage() {
           </div>
 
           <div className="key-value-list">
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Người duyệt</span>
-              <span className="key-value-list__value">{project.reviewed_by ? `Người dùng #${project.reviewed_by}` : "—"}</span>
-            </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Thời gian duyệt</span>
               <span className="key-value-list__value">{formatDateTime(project.reviewed_at)}</span>
@@ -182,6 +211,14 @@ export default function ProjectDetailPage() {
               <span className="key-value-list__label">Cập nhật lúc</span>
               <span className="key-value-list__value">{formatDateTime(project.updated_at)}</span>
             </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Yêu cầu hoàn thành</span>
+              <span className="key-value-list__value">
+                {project.completion_requested
+                  ? `Đã gửi lúc ${formatDateTime(project.completion_requested_at)}`
+                  : "Chưa gửi"}
+              </span>
+            </div>
           </div>
 
           {project.review_note ? <div className="inline-note">Ghi chú duyệt: {project.review_note}</div> : null}
@@ -198,9 +235,9 @@ export default function ProjectDetailPage() {
         <p className="section-description">{project.description || "Chưa có mô tả chi tiết cho đề tài này."}</p>
       </section>
 
-      {isAdmin && project.status === "approved" ? (
+      {project.completion_requested ? (
         <div className="notice notice--info">
-          Đề tài đã được phê duyệt. Nếu cần đánh dấu hoàn thành, vui lòng thực hiện trong khu vực Quản trị.
+          Đề tài đã gửi yêu cầu xác nhận hoàn thành tới quản trị viên. Vui lòng chờ xử lý tại khu vực Quản trị.
         </div>
       ) : null}
     </div>

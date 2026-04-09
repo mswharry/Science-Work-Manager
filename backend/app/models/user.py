@@ -33,12 +33,16 @@ class User(Base, TimestampMixin):
         back_populates="reviewer",
         foreign_keys="Project.reviewed_by",
     )
+    requested_project_completions = relationship(
+        "Project",
+        foreign_keys="Project.completion_requested_by",
+    )
     project_memberships = relationship("ProjectMember", back_populates="user", cascade="all, delete-orphan")
     paper_authorships = relationship("PaperAuthor", back_populates="user", cascade="all, delete-orphan")
+    created_papers = relationship("Paper", foreign_keys="Paper.created_by")
     reviewed_papers = relationship("Paper", back_populates="reviewer", foreign_keys="Paper.reviewed_by")
     created_notifications = relationship(
         "Notification",
         back_populates="creator",
         foreign_keys="Notification.created_by",
     )
-

@@ -30,7 +30,7 @@ export default function TopLecturers({ items = [], loading = false, error = "", 
                   <span className="ranking-rank">#{index + 1}</span>
                   <div>
                     <div className="table-primary">{item.full_name}</div>
-                    <div className="table-secondary">Giảng viên #{item.lecturer_id}</div>
+                    <div className="table-secondary">{item.staff_id || item.department || "Giảng viên"}</div>
                   </div>
                 </div>
                 <strong>{formatNumber(item.paper_count)} bài báo</strong>

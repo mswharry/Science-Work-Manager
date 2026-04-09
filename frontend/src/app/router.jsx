@@ -32,15 +32,18 @@ const router = createBrowserRouter([
           { path: "projects/:projectId", element: <ProjectDetailPage /> },
           { path: "projects/:projectId/edit", element: <ProjectFormPage mode="edit" /> },
           { path: "papers", element: <PapersPage /> },
-          { path: "papers/new", element: <PaperFormPage mode="create" /> },
           { path: "papers/:paperId", element: <PaperDetailPage /> },
           { path: "papers/:paperId/edit", element: <PaperFormPage mode="edit" /> },
           { path: "dashboard", element: <DashboardPage /> },
         ],
       },
       {
-        element: <ProtectedRoute roles={[ROLES.ADMIN, ROLES.LECTURER]} />,
+        element: <ProtectedRoute roles={[ROLES.LECTURER]} />,
         children: [{ path: "projects/new", element: <ProjectFormPage mode="create" /> }],
+      },
+      {
+        element: <ProtectedRoute roles={[ROLES.LECTURER, ROLES.STUDENT]} />,
+        children: [{ path: "papers/new", element: <PaperFormPage mode="create" /> }],
       },
       {
         element: <ProtectedRoute roles={[ROLES.ADMIN]} />,

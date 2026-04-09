@@ -11,13 +11,16 @@ from app.models.user import User
 from app.schemas.statistics import DashboardStatsResponse, StatusCount, TopLecturerResponse, YearlyCount
 
 
+
 def _status_count_map(rows: list[tuple[str, int]], expected_statuses: set[str]) -> list[StatusCount]:
     row_map = {status: count for status, count in rows}
     return [StatusCount(status=status, count=row_map.get(status, 0)) for status in sorted(expected_statuses)]
 
 
+
 def _to_status_value(raw_status) -> str:
     return raw_status.value if hasattr(raw_status, "value") else str(raw_status)
+
 
 
 def get_dashboard_statistics(db: Session) -> DashboardStatsResponse:
@@ -72,23 +75,32 @@ def get_dashboard_statistics(db: Session) -> DashboardStatsResponse:
     )
 
 
+
 def get_top_lecturers(db: Session) -> list[TopLecturerResponse]:
-    stmt: Select[tuple[int, str, int]] = (
+    stmt: Select[tuple[int, str, str | None, str | None, int]] = (
         select(
             User.id,
             User.full_name,
+            User.staff_id,
+            User.department,
             func.count(Paper.id).label("paper_count"),
         )
         .join(PaperAuthor, PaperAuthor.user_id == User.id)
         .join(Paper, Paper.id == PaperAuthor.paper_id)
         .where(User.role == UserRole.LECTURER, Paper.status == PaperStatus.APPROVED)
-        .group_by(User.id, User.full_name)
+        .group_by(User.id, User.full_name, User.staff_id, User.department)
         .order_by(func.count(Paper.id).desc(), User.id.asc())
         .limit(5)
     )
 
     rows = db.execute(stmt).all()
     return [
-        TopLecturerResponse(lecturer_id=lecturer_id, full_name=full_name, paper_count=paper_count)
-        for lecturer_id, full_name, paper_count in rows
+        TopLecturerResponse(
+            lecturer_id=lecturer_id,
+            full_name=full_name,
+            staff_id=staff_id,
+            department=department,
+            paper_count=paper_count,
+        )
+        for lecturer_id, full_name, staff_id, department, paper_count in rows
     ]
