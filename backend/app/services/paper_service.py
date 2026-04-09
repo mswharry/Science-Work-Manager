@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from sqlalchemy import Select, or_, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.constants import CategoryType, PAPER_STATUS_VALUES, PaperStatus, UserRole
 from app.models.association import PaperAuthor
@@ -15,16 +15,62 @@ from app.models.user import User
 from app.schemas.paper import AddAuthorRequest, PaperCreate, PaperReviewRequest, PaperUpdate
 from app.services.upload_service import delete_local_upload
 
-
 SUPERVISOR_REQUIRED_MESSAGE = "Student paper requires a supervising lecturer."
 SUPERVISOR_INVALID_MESSAGE = "supervisor_lecturer_id must reference an active approved lecturer."
 SUPERVISOR_NOT_FOUND_MESSAGE = "Supervisor lecturer not found."
+PAPER_CREATE_ADMIN_FORBIDDEN = "Admins are not allowed to create papers."
 
 
 def _validate_paper_status(status_value: str) -> PaperStatus:
     if status_value not in PAPER_STATUS_VALUES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid paper status.")
     return PaperStatus(status_value)
+
+
+
+def _paper_query() -> Select[tuple[Paper]]:
+    return select(Paper).options(
+        joinedload(Paper.category),
+        joinedload(Paper.reviewer),
+        joinedload(Paper.creator),
+        selectinload(Paper.authors).joinedload(PaperAuthor.user),
+    )
+
+
+
+def _resolve_creator_from_authors(paper: Paper) -> User | None:
+    if getattr(paper, "creator", None):
+        return paper.creator
+
+    if not getattr(paper, "authors", None):
+        return None
+
+    ordered_authors = sorted(
+        [author for author in paper.authors if author.user is not None],
+        key=lambda item: (item.author_order, item.id),
+    )
+    return ordered_authors[0].user if ordered_authors else None
+
+
+
+def _decorate_paper(paper: Paper) -> Paper:
+    creator = _resolve_creator_from_authors(paper)
+
+    paper.category_name = paper.category.name if paper.category else None
+    paper.creator_name = creator.full_name if creator else None
+    paper.creator_email = creator.email if creator else None
+    paper.creator_staff_id = creator.staff_id if creator else None
+    paper.creator_student_id = creator.student_id if creator else None
+    paper.creator_department = creator.department if creator else None
+    if creator and not paper.created_by:
+        paper.created_by = creator.id
+    paper.reviewed_by_name = paper.reviewer.full_name if paper.reviewer else None
+    return paper
+
+
+
+def _decorate_papers(papers: list[Paper]) -> list[Paper]:
+    return [_decorate_paper(paper) for paper in papers]
 
 
 
@@ -76,6 +122,9 @@ def _apply_supervisor_snapshot(paper: Paper, lecturer: User | None) -> None:
 
 
 def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper:
+    if current_user.role == UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=PAPER_CREATE_ADMIN_FORBIDDEN)
+
     _ensure_paper_category(db, payload.category_id)
 
     if current_user.role == UserRole.STUDENT and payload.supervisor_lecturer_id is None:
@@ -87,6 +136,7 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
         paper = Paper(
             title=payload.title.strip(),
             category_id=payload.category_id,
+            created_by=current_user.id,
             journal_name=payload.journal_name,
             publication_year=payload.publication_year,
             volume=payload.volume,
@@ -114,8 +164,7 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create paper.") from exc
 
-    db.refresh(paper)
-    return paper
+    return get_paper_by_id(db=db, paper_id=paper.id)
 
 
 
@@ -127,7 +176,7 @@ def list_papers(
     status_filter: str | None = None,
     mine: bool | None = None,
 ) -> list[Paper]:
-    stmt: Select[tuple[Paper]] = select(Paper).order_by(Paper.id.desc())
+    stmt: Select[tuple[Paper]] = _paper_query().order_by(Paper.id.desc())
     is_admin = current_user.role == UserRole.ADMIN
     author_condition = _is_paper_author_stmt(current_user.id)
 
@@ -146,15 +195,16 @@ def list_papers(
     if mine:
         stmt = stmt.where(author_condition)
 
-    return list(db.scalars(stmt))
+    papers = list(db.scalars(stmt).unique())
+    return _decorate_papers(papers)
 
 
 
 def get_paper_by_id(db: Session, paper_id: int) -> Paper:
-    paper = db.get(Paper, paper_id)
+    paper = db.scalar(_paper_query().where(Paper.id == paper_id))
     if not paper:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found.")
-    return paper
+    return _decorate_paper(paper)
 
 
 
@@ -227,8 +277,7 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to update paper.") from exc
 
-    db.refresh(paper)
-    return paper
+    return get_paper_by_id(db=db, paper_id=paper.id)
 
 
 
@@ -258,8 +307,7 @@ def review_paper(db: Session, paper_id: int, payload: PaperReviewRequest, admin_
     paper.reviewed_by = admin_user.id
     paper.reviewed_at = datetime.now(timezone.utc)
     db.commit()
-    db.refresh(paper)
-    return paper
+    return get_paper_by_id(db=db, paper_id=paper.id)
 
 
 

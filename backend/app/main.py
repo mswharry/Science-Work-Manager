@@ -23,9 +23,9 @@ def bootstrap_database() -> None:
 
 upload_dir = Path(settings.UPLOAD_DIR)
 upload_dir.mkdir(parents=True, exist_ok=True)
-app.mount('/uploads', StaticFiles(directory=upload_dir), name='uploads')
+app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
 
 
-@app.get('/health')
+@app.get("/health")
 def health_check() -> dict[str, str]:
-    return {'status': 'ok'}
+    return {"status": "ok"}

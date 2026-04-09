@@ -9,7 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { addPaperAuthor, deletePaper, getPaper } from "../services/paperService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { buildAssetUrl } from "../services/uploadService";
-import { formatDateTime } from "../utils/formatters";
+import { formatDateTime, formatPaperRecordCode, resolveIdentityCode, resolvePaperCategoryName, resolvePaperCreatorName } from "../utils/formatters";
 import { canManagePaperFromDetail } from "../utils/permissions";
 
 function resolveDoiLink(doi) {
@@ -106,7 +106,7 @@ export default function PaperDetailPage() {
   return (
     <div className="stack-xl">
       <PageHeader
-        eyebrow={`Bài báo #${paper.id}`}
+        eyebrow="Hồ sơ bài báo"
         title={paper.title}
         description="Thông tin chi tiết bài báo, trạng thái duyệt và các thông tin xuất bản hiện có."
         actions={
@@ -142,28 +142,24 @@ export default function PaperDetailPage() {
 
           <div className="key-value-list">
             <div className="key-value-list__item">
+              <span className="key-value-list__label">Mã hồ sơ</span>
+              <span className="key-value-list__value">{formatPaperRecordCode(paper)}</span>
+            </div>
+            <div className="key-value-list__item">
               <span className="key-value-list__label">Danh mục</span>
-              <span className="key-value-list__value">Danh mục #{paper.category_id}</span>
+              <span className="key-value-list__value">{resolvePaperCategoryName(paper)}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Người khai báo</span>
+              <span className="key-value-list__value">{resolvePaperCreatorName(paper)}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Mã người khai báo</span>
+              <span className="key-value-list__value">{resolveIdentityCode(paper.creator_staff_id, paper.creator_student_id)}</span>
             </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Tạp chí / hội nghị</span>
               <span className="key-value-list__value">{paper.journal_name || "—"}</span>
-            </div>
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Giảng viên hướng dẫn</span>
-              <span className="key-value-list__value">{paper.supervisor_full_name || "—"}</span>
-            </div>
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Email giảng viên</span>
-              <span className="key-value-list__value">{paper.supervisor_email || "—"}</span>
-            </div>
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Mã cán bộ</span>
-              <span className="key-value-list__value">{paper.supervisor_staff_id || "—"}</span>
-            </div>
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Đơn vị</span>
-              <span className="key-value-list__value">{paper.supervisor_department || "—"}</span>
             </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Năm công bố</span>
@@ -212,14 +208,26 @@ export default function PaperDetailPage() {
           <div className="section-heading">
             <div>
               <h2 className="section-title">Thông tin xử lý hồ sơ</h2>
-              <p className="section-description">Dữ liệu phê duyệt và thời gian cập nhật của bài báo.</p>
+              <p className="section-description">Thông tin hướng dẫn và thời gian cập nhật của bài báo.</p>
             </div>
           </div>
 
           <div className="key-value-list">
             <div className="key-value-list__item">
-              <span className="key-value-list__label">Người duyệt</span>
-              <span className="key-value-list__value">{paper.reviewed_by ? `Người dùng #${paper.reviewed_by}` : "—"}</span>
+              <span className="key-value-list__label">Giảng viên hướng dẫn</span>
+              <span className="key-value-list__value">{paper.supervisor_full_name || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Mã cán bộ giảng viên</span>
+              <span className="key-value-list__value">{paper.supervisor_staff_id || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Email giảng viên</span>
+              <span className="key-value-list__value">{paper.supervisor_email || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Đơn vị công tác</span>
+              <span className="key-value-list__value">{paper.supervisor_department || "—"}</span>
             </div>
             <div className="key-value-list__item">
               <span className="key-value-list__label">Thời gian duyệt</span>

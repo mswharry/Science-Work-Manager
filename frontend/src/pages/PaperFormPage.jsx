@@ -16,16 +16,14 @@ export default function PaperFormPage({ mode }) {
   const { paperId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isStudent = user?.role === ROLES.STUDENT;
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
   const [lecturers, setLecturers] = useState([]);
   const [categoryMode, setCategoryMode] = useState("select");
   const [categoryNote, setCategoryNote] = useState("");
-  const [lecturerNote, setLecturerNote] = useState("Chọn giảng viên hướng dẫn phù hợp từ danh sách hiện có.");
   const [pageLoading, setPageLoading] = useState(mode === "edit");
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [lecturersLoading, setLecturersLoading] = useState(isStudent);
+  const [lecturersLoading, setLecturersLoading] = useState(user?.role === ROLES.STUDENT);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -58,8 +56,8 @@ export default function PaperFormPage({ mode }) {
     }
   };
 
-  const loadLecturers = async () => {
-    if (!isStudent) {
+  const loadLecturerOptions = async () => {
+    if (user?.role !== ROLES.STUDENT) {
       setLecturers([]);
       setLecturersLoading(false);
       return;
@@ -69,22 +67,21 @@ export default function PaperFormPage({ mode }) {
     try {
       const data = await listLecturers();
       setLecturers(data);
-      setLecturerNote(
-        data.length
-          ? "Chỉ hiển thị các giảng viên đã được phê duyệt và đang hoạt động trong hệ thống."
-          : "Hiện chưa có giảng viên khả dụng để gán hướng dẫn. Vui lòng liên hệ quản trị viên.",
-      );
     } catch (requestError) {
-      setLecturers([]);
-      setLecturerNote(getApiErrorMessage(requestError, "Không thể tải danh sách giảng viên hướng dẫn."));
+      setSubmitError(getApiErrorMessage(requestError, "Không thể tải danh sách giảng viên hướng dẫn."));
     } finally {
       setLecturersLoading(false);
     }
   };
 
-  useEffect(() => { loadPaperData(); }, [mode, paperId]);
-  useEffect(() => { loadCategories(); }, []);
-  useEffect(() => { loadLecturers(); }, [isStudent]);
+  useEffect(() => {
+    loadPaperData();
+  }, [mode, paperId]);
+
+  useEffect(() => {
+    loadCategories();
+    loadLecturerOptions();
+  }, [user?.role]);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
@@ -124,11 +121,7 @@ export default function PaperFormPage({ mode }) {
       <PageHeader
         eyebrow="Bài báo"
         title={mode === "edit" ? "Chỉnh sửa bài báo" : "Khai báo bài báo mới"}
-        description={
-          isStudent
-            ? "Sinh viên khai báo bài báo cần chọn đầy đủ giảng viên hướng dẫn, thông tin xuất bản và tệp đính kèm tương ứng."
-            : "Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học, bao gồm cả tệp đính kèm trực tiếp nếu có."
-        }
+        description="Điền đầy đủ thông tin để khai báo hoặc cập nhật hồ sơ bài báo khoa học. Sinh viên bắt buộc phải chọn giảng viên hướng dẫn khi tạo hồ sơ."
       />
       <PaperForm
         initialValues={initialValues}
@@ -137,10 +130,9 @@ export default function PaperFormPage({ mode }) {
         categoriesLoading={categoriesLoading}
         categoryMode={categoryMode}
         categoryNote={categoryNote}
-        requireSupervisor={isStudent}
+        currentUser={user}
         lecturers={lecturers}
         lecturersLoading={lecturersLoading}
-        lecturerNote={lecturerNote}
         onSubmit={handleSubmit}
         onCancel={() => navigate(mode === "edit" ? `/papers/${paperId}` : "/papers")}
         submitting={submitting}

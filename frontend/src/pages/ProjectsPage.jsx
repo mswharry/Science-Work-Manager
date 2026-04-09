@@ -7,10 +7,10 @@ import PageHeader from "../components/common/PageHeader";
 import ProjectFilters from "../components/projects/ProjectFilters";
 import ProjectList from "../components/projects/ProjectList";
 import { useAuth } from "../contexts/AuthContext";
-import { deleteProject, listProjects } from "../services/projectService";
+import { deleteProject, listProjects, requestProjectCompletion } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
-import { ROLES } from "../utils/constants";
 import { countByStatus } from "../utils/formatters";
+import { canCreateProject } from "../utils/permissions";
 
 const DEFAULT_FILTERS = {
   keyword: "",
@@ -27,8 +27,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
-
-  const canCreateProject = user?.role === ROLES.ADMIN || user?.role === ROLES.LECTURER;
+  const [requestingId, setRequestingId] = useState(null);
 
   const loadData = async (activeFilters = filters) => {
     setLoading(true);
@@ -69,22 +68,39 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleRequestCompletion = async (projectId) => {
+    const confirmed = window.confirm("Gửi yêu cầu xác nhận hoàn thành đề tài này tới quản trị viên?");
+    if (!confirmed) {
+      return;
+    }
+
+    setRequestingId(projectId);
+    setError("");
+
+    try {
+      await requestProjectCompletion(projectId);
+      await loadData(filters);
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Không thể gửi yêu cầu hoàn thành đề tài."));
+    } finally {
+      setRequestingId(null);
+    }
+  };
+
   return (
     <div className="stack-xl">
       <PageHeader
         eyebrow="Đề tài"
         title="Quản lý đề tài nghiên cứu"
-        description="Tra cứu, lọc và quản lý các đề tài mà bạn được phép truy cập. Các thao tác chỉnh sửa chỉ hiển thị khi đúng quyền và trạng thái hồ sơ."
+        description="Tra cứu, lọc và quản lý các đề tài mà bạn được phép truy cập. Chỉ giảng viên được tạo hồ sơ đề tài mới trên hệ thống."
         actions={
-          canCreateProject ? (
+          canCreateProject(user) ? (
             <Link to="/projects/new" className="button nav-button-link">
               Tạo đề tài mới
             </Link>
           ) : null
         }
       />
-
-      {!canCreateProject ? <div className="notice notice--info">Tài khoản sinh viên chỉ được theo dõi đề tài có liên quan và không thể tự tạo đề tài mới.</div> : null}
 
       <MetricStrip
         items={[
@@ -128,7 +144,14 @@ export default function ProjectsPage() {
       {loading ? <LoadingState title="Đang tải đề tài" message="Hệ thống đang lấy dữ liệu đề tài." /> : null}
       {!loading && error ? <ErrorState title="Không thể tải danh sách đề tài" message={error} onRetry={() => loadData(filters)} /> : null}
       {!loading && !error ? (
-        <ProjectList projects={projects} currentUser={user} deletingId={deletingId} onDelete={handleDelete} />
+        <ProjectList
+          projects={projects}
+          currentUser={user}
+          deletingId={deletingId}
+          requestingId={requestingId}
+          onDelete={handleDelete}
+          onRequestCompletion={handleRequestCompletion}
+        />
       ) : null}
     </div>
   );

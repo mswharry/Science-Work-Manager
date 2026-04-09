@@ -2,6 +2,16 @@ import { useState } from "react";
 import { formatDateTime, truncateText } from "../../utils/formatters";
 import StatusBadge from "../common/StatusBadge";
 
+function resolveOwnerLabel(item, mode) {
+  if (mode === "project") {
+    return item.leader_name ? `Chủ nhiệm: ${item.leader_name}` : null;
+  }
+  if (mode === "paper") {
+    return item.creator_name ? `Người khai báo: ${item.creator_name}` : null;
+  }
+  return null;
+}
+
 export default function ReviewQueuePanel({
   title,
   description,
@@ -20,6 +30,8 @@ export default function ReviewQueuePanel({
   const handleNoteChange = (itemId, value) => {
     setNotes((previous) => ({ ...previous, [itemId]: value }));
   };
+
+  const entityMode = title.toLowerCase().includes("bài báo") ? "paper" : "project";
 
   return (
     <section className="panel stack-md">
@@ -46,6 +58,7 @@ export default function ReviewQueuePanel({
             const approveKey = `approve-${item.id}`;
             const rejectKey = `reject-${item.id}`;
             const completeKey = `complete-${item.id}`;
+            const ownerLabel = resolveOwnerLabel(item, entityMode);
 
             return (
               <article key={item.id} className="review-item">
@@ -64,8 +77,9 @@ export default function ReviewQueuePanel({
                 </div>
 
                 <div className="review-meta">
-                  <span>Hồ sơ #{item.id}</span>
-                  <span>Danh mục #{item.category_id}</span>
+                  <span>{item.category_name ? `Danh mục: ${item.category_name}` : "Danh mục: —"}</span>
+                  {ownerLabel ? <span>{ownerLabel}</span> : null}
+                  {item.completion_requested_at ? <span>Yêu cầu hoàn thành: {formatDateTime(item.completion_requested_at)}</span> : null}
                   <span>Cập nhật lúc {formatDateTime(item.updated_at)}</span>
                 </div>
 
@@ -107,7 +121,7 @@ export default function ReviewQueuePanel({
                       disabled={actionKey === completeKey}
                       onClick={() => onComplete(item.id)}
                     >
-                      {actionKey === completeKey ? "Đang hoàn tất..." : "Đánh dấu hoàn thành"}
+                      {actionKey === completeKey ? "Đang xác nhận..." : "Xác nhận hoàn thành"}
                     </button>
                   </div>
                 )}

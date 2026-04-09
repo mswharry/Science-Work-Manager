@@ -10,6 +10,9 @@ from app.models.user import User
 from app.schemas.user import UserApproveRequest
 
 
+VALID_ROLES = {UserRole.ADMIN.value, UserRole.LECTURER.value, UserRole.STUDENT.value}
+
+
 def list_users(
     db: Session,
     role: str | None = None,
@@ -19,7 +22,7 @@ def list_users(
     stmt: Select[tuple[User]] = select(User).order_by(User.id.desc())
 
     if role:
-        if role not in {UserRole.ADMIN.value, UserRole.LECTURER.value, UserRole.STUDENT.value}:
+        if role not in VALID_ROLES:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role filter.")
         stmt = stmt.where(User.role == UserRole(role))
     if is_active is not None:

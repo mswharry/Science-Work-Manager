@@ -10,6 +10,9 @@ class UserOut(BaseModel):
     role: str
     is_active: bool
     is_approved: bool
+    staff_id: str | None = None
+    student_id: str | None = None
+    department: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -22,7 +22,7 @@ const tabs = [
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("users");
   const [pendingProjects, setPendingProjects] = useState([]);
-  const [approvedProjects, setApprovedProjects] = useState([]);
+  const [completionRequests, setCompletionRequests] = useState([]);
   const [pendingPapers, setPendingPapers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [queueLoading, setQueueLoading] = useState({ projects: true, papers: true });
@@ -36,12 +36,12 @@ export default function AdminPage() {
     setQueueError((previous) => ({ ...previous, projects: "" }));
 
     try {
-      const [pendingData, approvedData] = await Promise.all([
+      const [pendingData, completionData] = await Promise.all([
         listProjects({ status: "pending" }),
-        listProjects({ status: "approved" }),
+        listProjects({ status: "approved", completion_requested: true }),
       ]);
       setPendingProjects(pendingData);
-      setApprovedProjects(approvedData);
+      setCompletionRequests(completionData);
     } catch (requestError) {
       setQueueError((previous) => ({
         ...previous,
@@ -110,6 +110,11 @@ export default function AdminPage() {
   };
 
   const handleProjectComplete = async (projectId) => {
+    const confirmed = window.confirm("Xác nhận hoàn thành đề tài này? Quyết định sẽ kết thúc quy trình của hồ sơ.");
+    if (!confirmed) {
+      return;
+    }
+
     const key = `complete-${projectId}`;
     setActionKey(key);
 
@@ -154,9 +159,9 @@ export default function AdminPage() {
         hint: "Các đề tài đang chờ quyết định phê duyệt hoặc từ chối.",
       },
       {
-        label: "Đề tài chờ hoàn thành",
-        value: approvedProjects.length,
-        hint: "Đề tài đã duyệt và chờ đánh dấu hoàn thành.",
+        label: "Yêu cầu hoàn thành",
+        value: completionRequests.length,
+        hint: "Các đề tài đã gửi yêu cầu xác nhận hoàn thành tới quản trị viên.",
       },
       {
         label: "Bài báo chờ duyệt",
@@ -169,7 +174,7 @@ export default function AdminPage() {
         hint: "Thông báo đang được hiển thị cho người dùng phù hợp.",
       },
     ],
-    [approvedProjects.length, notifications.length, pendingPapers.length, pendingProjects.length],
+    [completionRequests.length, notifications.length, pendingPapers.length, pendingProjects.length],
   );
 
   return (
@@ -226,9 +231,9 @@ export default function AdminPage() {
           />
 
           <ReviewQueuePanel
-            title="Đề tài đã duyệt chờ hoàn thành"
-            description="Đánh dấu hoàn thành đối với các đề tài đã đủ điều kiện kết thúc quy trình."
-            items={approvedProjects}
+            title="Đề tài chờ xác nhận hoàn thành"
+            description="Chỉ các đề tài đã được chủ nhiệm gửi yêu cầu hoàn thành mới xuất hiện trong danh sách này."
+            items={completionRequests}
             mode="complete"
             loading={queueLoading.projects}
             error={queueError.projects}

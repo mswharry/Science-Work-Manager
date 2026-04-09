@@ -26,4 +26,6 @@ class DashboardStatsResponse(BaseModel):
 class TopLecturerResponse(BaseModel):
     lecturer_id: int
     full_name: str
+    staff_id: str | None = None
+    department: str | None = None
     paper_count: int
