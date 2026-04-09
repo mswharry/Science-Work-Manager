@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,6 +13,8 @@ class PaperCreate(BaseModel):
     issue: str | None = None
     pages: str | None = None
     doi: str | None = None
+    file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
 
 
 class PaperUpdate(BaseModel):
@@ -25,6 +27,7 @@ class PaperUpdate(BaseModel):
     pages: str | None = None
     doi: str | None = None
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
 
 
 class PaperReviewRequest(BaseModel):
@@ -50,6 +53,11 @@ class PaperOut(BaseModel):
     doi: str | None = None
     status: str
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
+    supervisor_full_name: str | None = None
+    supervisor_email: str | None = None
+    supervisor_staff_id: str | None = None
+    supervisor_department: str | None = None
     review_note: str | None = None
     reviewed_by: int | None = None
     reviewed_at: datetime | None = None
@@ -57,5 +65,3 @@ class PaperOut(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-

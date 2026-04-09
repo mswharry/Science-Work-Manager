@@ -9,6 +9,7 @@ backend/.mypy_cache/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+
 frontend/.npm-cache/
 
 # Env / secrets
