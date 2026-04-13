@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { resolveIdentityCode } from "../../utils/formatters";
 import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from "../../utils/constants";
 import StatusBadge from "./StatusBadge";
 
@@ -65,7 +66,10 @@ export default function Navbar() {
                     <strong>{user?.full_name}</strong>
                     <span>{user?.email}</span>
                   </div>
-                  <StatusBadge value={user?.role} kind="role" />
+                  <div className="nav-user__role">
+                    <StatusBadge value={user?.role} kind="role" />
+                    <span className="nav-user__code">Mã: {resolveIdentityCode(user?.staff_id, user?.student_id)}</span>
+                  </div>
                 </div>
                 <button type="button" className="button button--ghost" onClick={handleLogout}>
                   Đăng xuất

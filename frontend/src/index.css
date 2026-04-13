@@ -211,6 +211,20 @@ strong {
   font-size: 0.78rem;
 }
 
+.nav-user__role {
+  display: flex;
+  flex-direction: column;
+  justify-items: start;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.nav-user__code {
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
 .page-shell {
   max-width: var(--container);
   margin: 0 auto;
@@ -1244,7 +1258,7 @@ body {
 }
 
 .badge {
-  padding: 5px 9px;
+  padding: 2px 9px;
   font-size: 0.76rem;
 }
 
