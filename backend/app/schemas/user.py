@@ -1,15 +1,28 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
 
 
 class UserOut(BaseModel):
     id: int
-    email: EmailStr
+    email: str
     full_name: str
     role: str
     is_active: bool
     is_approved: bool
+    staff_id: str | None = None
+    student_id: str | None = None
+    department: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LecturerLookupOut(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    staff_id: str | None = None
+    department: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

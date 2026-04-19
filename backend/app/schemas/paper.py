@@ -1,4 +1,5 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,6 +14,8 @@ class PaperCreate(BaseModel):
     issue: str | None = None
     pages: str | None = None
     doi: str | None = None
+    file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
 
 
 class PaperUpdate(BaseModel):
@@ -25,6 +28,7 @@ class PaperUpdate(BaseModel):
     pages: str | None = None
     doi: str | None = None
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
 
 
 class PaperReviewRequest(BaseModel):
@@ -42,6 +46,13 @@ class PaperOut(BaseModel):
     id: int
     title: str
     category_id: int
+    category_name: str | None = None
+    created_by: int | None = None
+    creator_name: str | None = None
+    creator_email: str | None = None
+    creator_staff_id: str | None = None
+    creator_student_id: str | None = None
+    creator_department: str | None = None
     journal_name: str | None = None
     publication_year: int | None = None
     volume: str | None = None
@@ -50,12 +61,16 @@ class PaperOut(BaseModel):
     doi: str | None = None
     status: str
     file_url: str | None = None
+    supervisor_lecturer_id: int | None = None
+    supervisor_full_name: str | None = None
+    supervisor_email: str | None = None
+    supervisor_staff_id: str | None = None
+    supervisor_department: str | None = None
     review_note: str | None = None
     reviewed_by: int | None = None
+    reviewed_by_name: str | None = None
     reviewed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-
