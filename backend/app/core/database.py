@@ -27,6 +27,7 @@ def get_db() -> Generator[Session, None, None]:
 RUNTIME_MIGRATIONS = {
     "papers": {
         "created_by": "INTEGER",
+        "level_id": "INTEGER",
         "supervisor_lecturer_id": "INTEGER",
         "supervisor_full_name": "VARCHAR(255)",
         "supervisor_email": "VARCHAR(255)",
@@ -34,6 +35,7 @@ RUNTIME_MIGRATIONS = {
         "supervisor_department": "VARCHAR(255)",
     },
     "projects": {
+        "level_id": "INTEGER",
         "completion_requested": "BOOLEAN DEFAULT 0",
         "completion_requested_at": "DATETIME",
         "completion_requested_by": "INTEGER",

@@ -5,10 +5,19 @@ from sqlalchemy.orm import Session
 
 from app.core.constants import PAPER_STATUS_VALUES, PROJECT_STATUS_VALUES, PaperStatus, UserRole
 from app.models.association import PaperAuthor
+from app.models.level import Level
 from app.models.paper import Paper
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.statistics import DashboardStatsResponse, StatusCount, TopLecturerResponse, YearlyCount
+
+
+class LevelStatistic:
+    def __init__(self, level_id: int, level_code: str, level_name: str, count: int) -> None:
+        self.level_id = level_id
+        self.level_code = level_code
+        self.level_name = level_name
+        self.count = count
 
 
 
@@ -103,4 +112,36 @@ def get_top_lecturers(db: Session) -> list[TopLecturerResponse]:
             paper_count=paper_count,
         )
         for lecturer_id, full_name, staff_id, department, paper_count in rows
+    ]
+
+
+def get_statistics_by_paper_level(db: Session) -> list[LevelStatistic]:
+    rows = list(
+        db.execute(
+            select(Level.id, Level.code, Level.name, func.count(Paper.id))
+            .outerjoin(Paper, Paper.level_id == Level.id)
+            .where(Level.entity_type == "paper")
+            .group_by(Level.id, Level.code, Level.name)
+            .order_by(Level.id.asc())
+        ).all()
+    )
+    return [
+        LevelStatistic(level_id=level_id, level_code=level_code, level_name=level_name, count=count)
+        for level_id, level_code, level_name, count in rows
+    ]
+
+
+def get_statistics_by_project_level(db: Session) -> list[LevelStatistic]:
+    rows = list(
+        db.execute(
+            select(Level.id, Level.code, Level.name, func.count(Project.id))
+            .outerjoin(Project, Project.level_id == Level.id)
+            .where(Level.entity_type == "project")
+            .group_by(Level.id, Level.code, Level.name)
+            .order_by(Level.id.asc())
+        ).all()
+    )
+    return [
+        LevelStatistic(level_id=level_id, level_code=level_code, level_name=level_name, count=count)
+        for level_id, level_code, level_name, count in rows
     ]

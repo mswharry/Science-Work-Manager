@@ -29,3 +29,10 @@ class TopLecturerResponse(BaseModel):
     staff_id: str | None = None
     department: str | None = None
     paper_count: int
+
+
+class LevelStatisticResponse(BaseModel):
+    level_id: int
+    level_code: str
+    level_name: str
+    count: int

@@ -31,8 +31,12 @@ class AcademicPlanStatus(str, Enum):
     CLOSED = "closed"
 
 
+class EntityType(str, Enum):
+    PROJECT = "project"
+    PAPER = "paper"
+
+
 APPROVABLE_ROLES = {UserRole.STUDENT.value, UserRole.LECTURER.value}
 PROJECT_STATUS_VALUES = {status.value for status in ProjectStatus}
 PAPER_STATUS_VALUES = {status.value for status in PaperStatus}
 ACADEMIC_PLAN_STATUS_VALUES = {status.value for status in AcademicPlanStatus}
-

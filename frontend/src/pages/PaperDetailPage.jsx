@@ -150,6 +150,16 @@ export default function PaperDetailPage() {
               <span className="key-value-list__value">{resolvePaperCategoryName(paper)}</span>
             </div>
             <div className="key-value-list__item">
+              <span className="key-value-list__label">Phân loại học thuật</span>
+              <span className="key-value-list__value">
+                {paper.classification_options?.length
+                  ? paper.classification_options
+                      .map((item) => `${item.group_name}: ${item.option_name}`)
+                      .join("; ")
+                  : "—"}
+              </span>
+            </div>
+            <div className="key-value-list__item">
               <span className="key-value-list__label">Người khai báo</span>
               <span className="key-value-list__value">{resolvePaperCreatorName(paper)}</span>
             </div>

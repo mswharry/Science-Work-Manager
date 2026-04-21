@@ -483,6 +483,30 @@ select.input:focus {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.paper-classification-field {
+  grid-column: 1 / -1;
+}
+
+.paper-classification-options {
+  align-items: start;
+}
+
+.paper-classification-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  color: var(--text-muted);
+  font-size: 0.93rem;
+}
+
+.paper-classification-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 16px;
+}
+
 .form-section + .form-section {
   padding-top: 24px;
   border-top: 1px solid var(--border);

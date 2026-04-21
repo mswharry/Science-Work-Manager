@@ -34,3 +34,15 @@ class PaperAuthor(Base, TimestampMixin):
     paper = relationship("Paper", back_populates="authors")
     user = relationship("User", back_populates="paper_authorships")
 
+
+class PaperClassification(Base, TimestampMixin):
+    __tablename__ = "paper_classifications"
+    __table_args__ = (UniqueConstraint("paper_id", "option_id", name="uq_paper_classifications_paper_option"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    paper_id: Mapped[int] = mapped_column(ForeignKey("papers.id"), nullable=False, index=True)
+    option_id: Mapped[int] = mapped_column(ForeignKey("paper_classification_options.id"), nullable=False, index=True)
+
+    paper = relationship("Paper", back_populates="classification_links")
+    option = relationship("PaperClassificationOption", back_populates="paper_links")
+
