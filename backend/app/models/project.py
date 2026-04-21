@@ -42,3 +42,5 @@ class Project(Base, TimestampMixin):
     reviewer = relationship("User", back_populates="reviewed_projects", foreign_keys=[reviewed_by])
     completion_requester = relationship("User", foreign_keys=[completion_requested_by])
     members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
+    tasks = relationship("ProjectTask", back_populates="project", cascade="all, delete-orphan")
+    periodic_reports = relationship("ProjectPeriodicReport", back_populates="project", cascade="all, delete-orphan")

@@ -45,9 +45,14 @@ export const ROLE_LABELS = {
 
 export const STATUS_LABELS = {
   pending: "Chờ duyệt",
+  submitted: "Đã nộp",
   approved: "Đã duyệt",
   rejected: "Từ chối",
   completed: "Hoàn thành",
+  todo: "Chưa làm",
+  in_review: "Chờ leader duyệt",
+  done: "Đã hoàn tất",
+  overdue: "Quá hạn",
   all: "Toàn bộ người dùng",
   active: "Đang hoạt động",
   inactive: "Đã khóa",

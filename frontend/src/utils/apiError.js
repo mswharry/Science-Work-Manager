@@ -53,6 +53,21 @@ const EXACT_MESSAGE_MAP = {
   "This user is already an author of the paper.": "Người dùng này đã là tác giả của bài báo.",
   "Failed to add paper author.": "Không thể thêm đồng tác giả vào bài báo.",
   "Action must be approve or reject.": "Hành động không hợp lệ. Vui lòng chọn phê duyệt hoặc từ chối.",
+  "Only project members can access project execution data.": "Chỉ thành viên đề tài mới có thể truy cập module triển khai đề tài.",
+  "Project execution module is available only for approved or completed projects.": "Module triển khai chỉ khả dụng khi đề tài đã được duyệt hoặc đã hoàn thành.",
+  "Only project leader or admin can manage this execution module.": "Chỉ chủ nhiệm đề tài hoặc quản trị viên mới được phép quản lý module triển khai.",
+  "This operation is only available when project status is approved.": "Thao tác này chỉ khả dụng khi đề tài đang ở trạng thái đã duyệt.",
+  "Assignee must be an active user.": "Người phụ trách phải là tài khoản đang hoạt động.",
+  "Task not found.": "Không tìm thấy task thuộc đề tài này.",
+  "Periodic report not found.": "Không tìm thấy mốc báo cáo định kỳ thuộc đề tài này.",
+  "Completed task cannot be edited.": "Task đã hoàn thành thì không thể chỉnh sửa.",
+  "Only assignee, project leader, or admin can submit this task.": "Chỉ người phụ trách, chủ nhiệm đề tài hoặc quản trị viên mới có thể nộp task.",
+  "Task can only be submitted from todo or rejected status.": "Task chỉ có thể được nộp từ trạng thái chưa làm hoặc bị yêu cầu làm lại.",
+  "Only in_review task can be approved or rejected.": "Chỉ task đang chờ duyệt mới có thể phê duyệt hoặc từ chối.",
+  "Only project participants can submit periodic reports.": "Chỉ thành viên tham gia đề tài mới được phép nộp báo cáo định kỳ.",
+  "Periodic report can only be submitted from pending/rejected/overdue status.": "Báo cáo định kỳ chỉ có thể nộp khi đang ở trạng thái chờ duyệt, bị từ chối hoặc quá hạn.",
+  "Only submitted or overdue report can be approved/rejected.": "Chỉ báo cáo đã nộp hoặc quá hạn mới có thể được phê duyệt hoặc từ chối.",
+  "Project is past end date but has not been completed yet.": "Đề tài đã quá ngày kết thúc nhưng chưa được xác nhận hoàn thành.",
 };
 
 const PARTIAL_MESSAGE_MAP = [
@@ -65,6 +80,8 @@ const PARTIAL_MESSAGE_MAP = [
   ["String should have at most", "Nội dung vượt quá độ dài cho phép."],
   ["Request failed with status code 500", "Máy chủ gặp lỗi khi xử lý yêu cầu. Vui lòng thử lại hoặc kiểm tra backend."],
   ["Internal Server Error", "Máy chủ gặp lỗi khi xử lý yêu cầu. Vui lòng thử lại hoặc kiểm tra backend."],
+  ["overdue tasks", "Có công việc đang quá hạn xử lý."],
+  ["overdue periodic reports", "Có báo cáo định kỳ đang quá hạn."],
 ];
 
 function translateErrorText(message) {

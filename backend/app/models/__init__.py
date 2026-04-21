@@ -4,6 +4,7 @@ from app.models.category import Category
 from app.models.notification import Notification
 from app.models.paper import Paper
 from app.models.project import Project
+from app.models.project_execution import ProjectPeriodicReport, ProjectTask
 from app.models.user import User
 
 __all__ = [
@@ -12,6 +13,8 @@ __all__ = [
     "Category",
     "Project",
     "ProjectMember",
+    "ProjectTask",
+    "ProjectPeriodicReport",
     "Paper",
     "PaperAuthor",
     "Notification",

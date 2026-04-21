@@ -1,6 +1,11 @@
 import { formatLabel } from "../../utils/formatters";
 
 const toneMap = {
+  todo: "secondary",
+  in_review: "warning",
+  done: "success",
+  submitted: "info",
+  overdue: "danger",
   pending: "warning",
   approved: "success",
   rejected: "danger",

@@ -4,7 +4,21 @@ import ErrorState from "../components/common/ErrorState";
 import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import StatusBadge from "../components/common/StatusBadge";
+import ProjectExecutionOverview from "../components/projects/ProjectExecutionOverview";
+import ProjectReportBoard from "../components/projects/ProjectReportBoard";
+import ProjectTaskBoard from "../components/projects/ProjectTaskBoard";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  createPeriodicReport,
+  createProjectTask,
+  getExecutionOverview,
+  listPeriodicReports,
+  listProjectTasks,
+  reviewPeriodicReport,
+  reviewProjectTask,
+  submitPeriodicReport,
+  submitProjectTask,
+} from "../services/projectExecutionService";
 import { deleteProject, getProject, requestProjectCompletion } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { buildAssetUrl } from "../services/uploadService";
@@ -28,6 +42,41 @@ export default function ProjectDetailPage() {
   const [actionError, setActionError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [executionOverview, setExecutionOverview] = useState(null);
+  const [executionTasks, setExecutionTasks] = useState([]);
+  const [executionReports, setExecutionReports] = useState([]);
+  const [executionLoading, setExecutionLoading] = useState(false);
+  const [executionError, setExecutionError] = useState("");
+  const [executionActionKey, setExecutionActionKey] = useState("");
+
+  const shouldShowExecution = (projectStatus) => ["approved", "completed"].includes(projectStatus);
+
+  const resetExecutionState = () => {
+    setExecutionOverview(null);
+    setExecutionTasks([]);
+    setExecutionReports([]);
+    setExecutionError("");
+  };
+
+  const loadExecutionData = async (targetProjectId = projectId) => {
+    setExecutionLoading(true);
+    setExecutionError("");
+
+    try {
+      const [overview, tasks, reports] = await Promise.all([
+        getExecutionOverview(targetProjectId),
+        listProjectTasks(targetProjectId),
+        listPeriodicReports(targetProjectId),
+      ]);
+      setExecutionOverview(overview);
+      setExecutionTasks(tasks);
+      setExecutionReports(reports);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể tải module triển khai đề tài."));
+    } finally {
+      setExecutionLoading(false);
+    }
+  };
 
   const loadProjectData = async () => {
     setLoading(true);
@@ -36,6 +85,11 @@ export default function ProjectDetailPage() {
     try {
       const data = await getProject(projectId);
       setProject(data);
+      if (shouldShowExecution(data.status)) {
+        await loadExecutionData(data.id);
+      } else {
+        resetExecutionState();
+      }
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Không thể tải chi tiết đề tài."));
     } finally {
@@ -78,10 +132,93 @@ export default function ProjectDetailPage() {
     try {
       const updated = await requestProjectCompletion(projectId);
       setProject(updated);
+      if (shouldShowExecution(updated.status)) {
+        await loadExecutionData(updated.id);
+      }
     } catch (requestError) {
       setActionError(getApiErrorMessage(requestError, "Không thể gửi yêu cầu hoàn thành đề tài."));
     } finally {
       setRequesting(false);
+    }
+  };
+
+  const handleCreateTask = async (payload) => {
+    setExecutionActionKey("create-task");
+    setExecutionError("");
+    try {
+      await createProjectTask(projectId, payload);
+      await loadExecutionData(projectId);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể tạo task mới."));
+    } finally {
+      setExecutionActionKey("");
+    }
+  };
+
+  const handleSubmitTask = async (taskId, payload) => {
+    setExecutionActionKey(`submit-task-${taskId}`);
+    setExecutionError("");
+    try {
+      await submitProjectTask(projectId, taskId, payload);
+      await loadExecutionData(projectId);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể nộp task."));
+    } finally {
+      setExecutionActionKey("");
+    }
+  };
+
+  const handleReviewTask = async (taskId, payload) => {
+    const key = `review-${payload.action}-task-${taskId}`;
+    setExecutionActionKey(key);
+    setExecutionError("");
+    try {
+      await reviewProjectTask(projectId, taskId, payload);
+      await loadExecutionData(projectId);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể duyệt task."));
+    } finally {
+      setExecutionActionKey("");
+    }
+  };
+
+  const handleCreateReport = async (payload) => {
+    setExecutionActionKey("create-report");
+    setExecutionError("");
+    try {
+      await createPeriodicReport(projectId, payload);
+      await loadExecutionData(projectId);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể tạo mốc báo cáo."));
+    } finally {
+      setExecutionActionKey("");
+    }
+  };
+
+  const handleSubmitReport = async (reportId, payload) => {
+    setExecutionActionKey(`submit-report-${reportId}`);
+    setExecutionError("");
+    try {
+      await submitPeriodicReport(projectId, reportId, payload);
+      await loadExecutionData(projectId);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể nộp báo cáo định kỳ."));
+    } finally {
+      setExecutionActionKey("");
+    }
+  };
+
+  const handleReviewReport = async (reportId, payload) => {
+    const key = `review-${payload.action}-report-${reportId}`;
+    setExecutionActionKey(key);
+    setExecutionError("");
+    try {
+      await reviewPeriodicReport(projectId, reportId, payload);
+      await loadExecutionData(projectId);
+    } catch (requestError) {
+      setExecutionError(getApiErrorMessage(requestError, "Không thể duyệt báo cáo định kỳ."));
+    } finally {
+      setExecutionActionKey("");
     }
   };
 
@@ -234,6 +371,43 @@ export default function ProjectDetailPage() {
         </div>
         <p className="section-description">{project.description || "Chưa có mô tả chi tiết cho đề tài này."}</p>
       </section>
+
+      {shouldShowExecution(project.status) ? (
+        <>
+          <ProjectExecutionOverview
+            overview={executionOverview}
+            loading={executionLoading}
+            error={executionError}
+            onRefresh={() => loadExecutionData(project.id)}
+          />
+
+          <ProjectTaskBoard
+            project={project}
+            currentUser={user}
+            tasks={executionTasks}
+            loading={executionLoading}
+            error={executionError}
+            actionKey={executionActionKey}
+            onRefresh={() => loadExecutionData(project.id)}
+            onCreateTask={handleCreateTask}
+            onSubmitTask={handleSubmitTask}
+            onReviewTask={handleReviewTask}
+          />
+
+          <ProjectReportBoard
+            project={project}
+            currentUser={user}
+            reports={executionReports}
+            loading={executionLoading}
+            error={executionError}
+            actionKey={executionActionKey}
+            onRefresh={() => loadExecutionData(project.id)}
+            onCreateReport={handleCreateReport}
+            onSubmitReport={handleSubmitReport}
+            onReviewReport={handleReviewReport}
+          />
+        </>
+      ) : null}
 
       {project.completion_requested ? (
         <div className="notice notice--info">
