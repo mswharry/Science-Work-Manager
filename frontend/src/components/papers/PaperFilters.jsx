@@ -45,6 +45,17 @@ export default function PaperFilters({ filters, onChange, onSubmit, onReset }) {
           />
         </FormField>
 
+        <FormField label="Mã phân loại">
+          <input
+            className="input"
+            type="number"
+            min="1"
+            value={filters.classification_option_id}
+            onChange={(event) => onChange("classification_option_id", event.target.value)}
+            placeholder="Ví dụ: 5"
+          />
+        </FormField>
+
         <FormField label="Phạm vi hiển thị">
           <label className="checkbox-field">
             <input type="checkbox" checked={filters.mine} onChange={(event) => onChange("mine", event.target.checked)} />

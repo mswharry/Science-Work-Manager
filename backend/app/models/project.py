@@ -17,6 +17,7 @@ class Project(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     code: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False, index=True)
+    level_id: Mapped[Optional[int]] = mapped_column(ForeignKey("levels.id"), nullable=True, index=True)
     leader_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     budget: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
     start_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
@@ -38,6 +39,7 @@ class Project(Base, TimestampMixin):
     completion_requested_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     category = relationship("Category", back_populates="projects")
+    level = relationship("Level", back_populates="projects")
     leader = relationship("User", back_populates="led_projects", foreign_keys=[leader_id])
     reviewer = relationship("User", back_populates="reviewed_projects", foreign_keys=[reviewed_by])
     completion_requester = relationship("User", foreign_keys=[completion_requested_by])

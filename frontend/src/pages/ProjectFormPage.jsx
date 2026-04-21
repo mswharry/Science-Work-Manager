@@ -5,6 +5,7 @@ import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import ProjectForm from "../components/projects/ProjectForm";
 import { listProjectCategories } from "../services/categoryService";
+import { getPublicProjectLevels } from "../services/levelService";
 import { createProject, getProject, updateProject } from "../services/projectService";
 import { uploadProjectFinalReport, uploadProjectProposal } from "../services/uploadService";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -15,10 +16,12 @@ export default function ProjectFormPage({ mode }) {
   const navigate = useNavigate();
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [categoryMode, setCategoryMode] = useState("select");
   const [categoryNote, setCategoryNote] = useState("");
   const [pageLoading, setPageLoading] = useState(mode === "edit");
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [levelsLoading, setLevelsLoading] = useState(true);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,8 +54,20 @@ export default function ProjectFormPage({ mode }) {
     }
   };
 
+  const loadLevels = async () => {
+    setLevelsLoading(true);
+    try {
+      const data = await getPublicProjectLevels();
+      setLevels(data);
+    } catch (requestError) {
+      setLevels([]);
+    } finally {
+      setLevelsLoading(false);
+    }
+  };
+
   useEffect(() => { loadProjectData(); }, [mode, projectId]);
-  useEffect(() => { loadCategories(); }, []);
+  useEffect(() => { loadCategories(); loadLevels(); }, []);
 
   const handleSubmit = async (payload) => {
     setSubmitting(true);
@@ -101,6 +116,8 @@ export default function ProjectFormPage({ mode }) {
         categoriesLoading={categoriesLoading}
         categoryMode={categoryMode}
         categoryNote={categoryNote}
+        levels={levels}
+        levelsLoading={levelsLoading}
         onSubmit={handleSubmit}
         onCancel={() => navigate(mode === "edit" ? `/projects/${projectId}` : "/projects")}
         submitting={submitting}

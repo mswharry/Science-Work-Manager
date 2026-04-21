@@ -38,6 +38,7 @@ def list_papers_endpoint(
     category_id: int | None = Query(default=None),
     status: str | None = Query(default=None),
     mine: bool | None = Query(default=None),
+    classification_option_id: int | None = Query(default=None),
 ) -> list[PaperOut]:
     papers = list_papers(
         db=db,
@@ -46,6 +47,7 @@ def list_papers_endpoint(
         category_id=category_id,
         status_filter=status,
         mine=mine,
+        classification_option_id=classification_option_id,
     )
     return [PaperOut.model_validate(paper) for paper in papers]
 

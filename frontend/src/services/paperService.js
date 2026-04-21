@@ -19,6 +19,10 @@ export async function listPapers(filters = {}) {
     params.mine = true;
   }
 
+  if (filters.classification_option_id) {
+    params.classification_option_id = Number(filters.classification_option_id);
+  }
+
   const response = await api.get("/papers", { params });
   return response.data;
 }
