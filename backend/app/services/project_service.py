@@ -33,6 +33,7 @@ def _validate_project_status(status_value: str) -> ProjectStatus:
 def _project_query() -> Select[tuple[Project]]:
     return select(Project).options(
         joinedload(Project.category),
+        joinedload(Project.level),
         joinedload(Project.leader),
         joinedload(Project.reviewer),
         joinedload(Project.completion_requester),
@@ -42,6 +43,8 @@ def _project_query() -> Select[tuple[Project]]:
 
 def _decorate_project(project: Project) -> Project:
     project.category_name = project.category.name if project.category else None
+    project.level_name = project.level.name if project.level else None
+    project.level_code = project.level.code if project.level else None
     project.leader_name = project.leader.full_name if project.leader else None
     project.leader_email = project.leader.email if project.leader else None
     project.reviewed_by_name = project.reviewer.full_name if project.reviewer else None
@@ -95,6 +98,7 @@ def create_project(db: Session, payload: ProjectCreate, current_user: User) -> P
     project = Project(
         name=payload.name.strip(),
         category_id=payload.category_id,
+        level_id=payload.level_id,
         leader_id=current_user.id,
         budget=payload.budget,
         start_date=payload.start_date,

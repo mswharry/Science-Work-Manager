@@ -8,6 +8,7 @@ function createDefaultForm(initialValues) {
   return {
     title: initialValues?.title || "",
     category_id: initialValues?.category_id || "",
+    level_id: initialValues?.level_id || "",
     journal_name: initialValues?.journal_name || "",
     publication_year: initialValues?.publication_year || "",
     volume: initialValues?.volume || "",
@@ -16,6 +17,7 @@ function createDefaultForm(initialValues) {
     doi: initialValues?.doi || "",
     file_url: initialValues?.file_url || "",
     supervisor_lecturer_id: initialValues?.supervisor_lecturer_id || "",
+    classification_option_ids: initialValues?.classification_options?.map((item) => item.option_id) || [],
     file_upload: null,
   };
 }
@@ -27,6 +29,10 @@ export default function PaperForm({
   categoriesLoading,
   categoryMode,
   categoryNote,
+  levels,
+  levelsLoading,
+  classificationGroups,
+  classificationLoading,
   currentUser,
   lecturers,
   lecturersLoading,
@@ -58,6 +64,7 @@ export default function PaperForm({
     onSubmit({
       title: form.title.trim(),
       category_id: Number(form.category_id),
+      level_id: form.level_id ? Number(form.level_id) : null,
       journal_name: normalizeOptionalText(form.journal_name),
       publication_year: normalizeOptionalNumber(form.publication_year),
       volume: normalizeOptionalText(form.volume),
@@ -66,7 +73,20 @@ export default function PaperForm({
       doi: normalizeOptionalText(form.doi),
       file_url: normalizeOptionalText(form.file_url),
       supervisor_lecturer_id: isStudent ? Number(form.supervisor_lecturer_id) : null,
+      classification_option_ids: form.classification_option_ids,
       file_upload: form.file_upload || null,
+    });
+  };
+
+  const toggleClassificationOption = (optionId) => {
+    setForm((previous) => {
+      const exists = previous.classification_option_ids.includes(optionId);
+      return {
+        ...previous,
+        classification_option_ids: exists
+          ? previous.classification_option_ids.filter((id) => id !== optionId)
+          : [...previous.classification_option_ids, optionId],
+      };
     });
   };
 
@@ -147,7 +167,7 @@ export default function PaperForm({
           </div>
         </div>
 
-        <div className="form-grid form-grid--2">
+        <div className="form-grid form-grid--2 paper-info-grid">
           <FormField label="Tên bài báo" required>
             <input className="input" value={form.title} onChange={(event) => handleChange("title", event.target.value)} placeholder="Nhập tên bài báo" required />
           </FormField>
@@ -168,6 +188,48 @@ export default function PaperForm({
               <input className="input" type="number" min="1" value={form.category_id} onChange={(event) => handleChange("category_id", event.target.value)} placeholder="Ví dụ: 1" required />
             </FormField>
           )}
+
+          <FormField label="Cấp độ bài báo" hint={levelsLoading ? "Đang tải danh sách cấp độ..." : "Chọn cấp độ phù hợp với bài báo (tùy chọn)."}>
+            <select className="input" value={form.level_id} onChange={(event) => handleChange("level_id", event.target.value)} disabled={levelsLoading}>
+              <option value="">Không chọn</option>
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  {level.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <div className="paper-classification-field">
+            <FormField label="Phân loại học thuật" hint={classificationLoading ? "Đang tải bộ phân loại..." : "Bạn có thể chọn nhiều mục phân loại cho cùng một bài báo."}>
+              {classificationLoading ? (
+                <div className="muted-text">Đang tải bộ phân loại...</div>
+              ) : !classificationGroups.length ? (
+                <div className="muted-text">Chưa có dữ liệu phân loại.</div>
+              ) : (
+                <div className="stack-md">
+                  {classificationGroups.map((group) => (
+                    <div key={group.id} className="inline-note stack-sm">
+                      <div className="table-primary">{group.name}</div>
+                      <div className="table-secondary">{group.description || "Chọn một hoặc nhiều mục phù hợp."}</div>
+                      <div className="form-grid form-grid--2 paper-classification-options">
+                        {group.options.map((option) => (
+                          <label key={option.id} className="paper-classification-option">
+                            <input
+                              type="checkbox"
+                              checked={form.classification_option_ids.includes(option.id)}
+                              onChange={() => toggleClassificationOption(option.id)}
+                            />
+                            <span>{option.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </FormField>
+          </div>
 
           <FormField label="Tên tạp chí / hội nghị">
             <input className="input" value={form.journal_name} onChange={(event) => handleChange("journal_name", event.target.value)} placeholder="Ví dụ: Journal of ..." />

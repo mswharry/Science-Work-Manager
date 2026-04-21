@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import CategoryManager from "../components/admin/CategoryManager";
+import LevelManager from "../components/admin/LevelManager";
 import NotificationComposer from "../components/admin/NotificationComposer";
 import NotificationFeed from "../components/admin/NotificationFeed";
 import ReviewQueuePanel from "../components/admin/ReviewQueuePanel";
@@ -16,6 +17,7 @@ const tabs = [
   { key: "projects", label: "Duyệt đề tài" },
   { key: "papers", label: "Duyệt bài báo" },
   { key: "categories", label: "Danh mục" },
+  { key: "levels", label: "Phân cấp" },
   { key: "notifications", label: "Thông báo" },
 ];
 
@@ -260,6 +262,8 @@ export default function AdminPage() {
       ) : null}
 
       {activeTab === "categories" ? <CategoryManager /> : null}
+
+      {activeTab === "levels" ? <LevelManager /> : null}
 
       {activeTab === "notifications" ? (
         <div className="grid grid--2">
