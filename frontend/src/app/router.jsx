@@ -11,6 +11,7 @@ import ProjectFormPage from "../pages/ProjectFormPage";
 import PapersPage from "../pages/PapersPage";
 import PaperDetailPage from "../pages/PaperDetailPage";
 import PaperFormPage from "../pages/PaperFormPage";
+import AcademicPlansPage from "../pages/AcademicPlansPage";
 import AdminPage from "../pages/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
           { path: "papers", element: <PapersPage /> },
           { path: "papers/:paperId", element: <PaperDetailPage /> },
           { path: "papers/:paperId/edit", element: <PaperFormPage mode="edit" /> },
+          { path: "plans", element: <AcademicPlansPage /> },
           { path: "dashboard", element: <DashboardPage /> },
         ],
       },

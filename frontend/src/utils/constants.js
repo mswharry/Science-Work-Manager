@@ -31,6 +31,12 @@ export const PAPER_STATUS_OPTIONS = [
   { value: "rejected", label: "Từ chối" },
 ];
 
+export const PLAN_STATUS_OPTIONS = [
+  { value: "draft", label: "Bản nháp" },
+  { value: "active", label: "Đang áp dụng" },
+  { value: "closed", label: "Đã đóng" },
+];
+
 export const TARGET_ROLE_OPTIONS = [
   { value: "all", label: "Toàn bộ người dùng" },
   { value: ROLES.LECTURER, label: "Giảng viên" },
@@ -48,11 +54,19 @@ export const STATUS_LABELS = {
   approved: "Đã duyệt",
   rejected: "Từ chối",
   completed: "Hoàn thành",
+  draft: "Bản nháp",
+  active: "Đang áp dụng",
+  closed: "Đã đóng",
   all: "Toàn bộ người dùng",
-  active: "Đang hoạt động",
   inactive: "Đã khóa",
   true: "Có",
   false: "Không",
+};
+
+export const PLAN_STATUS_LABELS = {
+  draft: "Bản nháp",
+  active: "Đang áp dụng",
+  closed: "Đã đóng",
 };
 
 export const TARGET_ROLE_LABELS = {

@@ -5,6 +5,8 @@ const toneMap = {
   approved: "success",
   rejected: "danger",
   completed: "info",
+  draft: "neutral",
+  closed: "danger",
   admin: "neutral",
   lecturer: "info",
   student: "secondary",

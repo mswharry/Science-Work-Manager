@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_admin_user, get_current_user
 from app.models.user import User
 from app.schemas.upload import UploadOut
 from app.services.upload_service import save_upload
@@ -33,3 +33,11 @@ def upload_project_final_report(
     file: UploadFile = File(...),
 ) -> UploadOut:
     return UploadOut.model_validate(save_upload(file, 'projects/final_reports'))
+
+
+@router.post('/uploads/academic-plan-sheet', response_model=UploadOut, status_code=status.HTTP_201_CREATED)
+def upload_academic_plan_sheet(
+    _: Annotated[User, Depends(get_current_admin_user)],
+    file: UploadFile = File(...),
+) -> UploadOut:
+    return UploadOut.model_validate(save_upload(file, 'plans/sheets'))

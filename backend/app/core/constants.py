@@ -25,7 +25,14 @@ class PaperStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class AcademicPlanStatus(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    CLOSED = "closed"
+
+
 APPROVABLE_ROLES = {UserRole.STUDENT.value, UserRole.LECTURER.value}
 PROJECT_STATUS_VALUES = {status.value for status in ProjectStatus}
 PAPER_STATUS_VALUES = {status.value for status in PaperStatus}
+ACADEMIC_PLAN_STATUS_VALUES = {status.value for status in AcademicPlanStatus}
 
