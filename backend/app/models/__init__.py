@@ -1,4 +1,3 @@
-from app.models.association import PaperAuthor, ProjectMember
 from app.models.academic_plan import AcademicPlan
 from app.models.association import PaperAuthor, PaperClassification, ProjectMember
 from app.models.base import Base
