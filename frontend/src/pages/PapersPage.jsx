@@ -16,6 +16,7 @@ const DEFAULT_FILTERS = {
   year: "",
   status: "",
   category_id: "",
+  classification_option_id: "",
   mine: false,
 };
 

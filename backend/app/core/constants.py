@@ -25,6 +25,11 @@ class PaperStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class EntityType(str, Enum):
+    PROJECT = "project"
+    PAPER = "paper"
+
+
 APPROVABLE_ROLES = {UserRole.STUDENT.value, UserRole.LECTURER.value}
 PROJECT_STATUS_VALUES = {status.value for status in ProjectStatus}
 PAPER_STATUS_VALUES = {status.value for status in PaperStatus}

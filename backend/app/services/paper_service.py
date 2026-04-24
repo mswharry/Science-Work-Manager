@@ -8,8 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.constants import CategoryType, PAPER_STATUS_VALUES, PaperStatus, UserRole
-from app.models.association import PaperAuthor
+from app.models.association import PaperAuthor, PaperClassification
 from app.models.category import Category
+from app.models.classification import PaperClassificationOption
 from app.models.paper import Paper
 from app.models.user import User
 from app.schemas.paper import AddAuthorRequest, PaperCreate, PaperReviewRequest, PaperUpdate
@@ -31,9 +32,11 @@ def _validate_paper_status(status_value: str) -> PaperStatus:
 def _paper_query() -> Select[tuple[Paper]]:
     return select(Paper).options(
         joinedload(Paper.category),
+        joinedload(Paper.level),
         joinedload(Paper.reviewer),
         joinedload(Paper.creator),
         selectinload(Paper.authors).joinedload(PaperAuthor.user),
+        selectinload(Paper.classification_links).joinedload(PaperClassification.option).joinedload(PaperClassificationOption.group),
     )
 
 
@@ -57,6 +60,8 @@ def _decorate_paper(paper: Paper) -> Paper:
     creator = _resolve_creator_from_authors(paper)
 
     paper.category_name = paper.category.name if paper.category else None
+    paper.level_name = paper.level.name if paper.level else None
+    paper.level_code = paper.level.code if paper.level else None
     paper.creator_name = creator.full_name if creator else None
     paper.creator_email = creator.email if creator else None
     paper.creator_staff_id = creator.staff_id if creator else None
@@ -64,6 +69,17 @@ def _decorate_paper(paper: Paper) -> Paper:
     paper.creator_department = creator.department if creator else None
     if creator and not paper.created_by:
         paper.created_by = creator.id
+    paper.classification_options = [
+        {
+            "group_id": link.option.group.id,
+            "group_name": link.option.group.name,
+            "option_id": link.option.id,
+            "option_code": link.option.code,
+            "option_name": link.option.name,
+        }
+        for link in getattr(paper, "classification_links", [])
+        if getattr(link, "option", None) and getattr(link.option, "group", None)
+    ]
     paper.reviewed_by_name = paper.reviewer.full_name if paper.reviewer else None
     return paper
 
@@ -120,6 +136,32 @@ def _apply_supervisor_snapshot(paper: Paper, lecturer: User | None) -> None:
     paper.supervisor_department = lecturer.department
 
 
+def _validate_classification_options(db: Session, option_ids: list[int] | None) -> list[int]:
+    if not option_ids:
+        return []
+
+    unique_ids = sorted(set(option_ids))
+    found_ids = list(
+        db.scalars(
+            select(PaperClassificationOption.id).where(
+                PaperClassificationOption.id.in_(unique_ids),
+                PaperClassificationOption.is_active == True,
+            )
+        )
+    )
+
+    if len(found_ids) != len(unique_ids):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid classification_option_ids.")
+
+    return unique_ids
+
+
+def _replace_paper_classifications(db: Session, paper_id: int, option_ids: list[int]) -> None:
+    db.query(PaperClassification).filter(PaperClassification.paper_id == paper_id).delete(synchronize_session=False)
+    for option_id in option_ids:
+        db.add(PaperClassification(paper_id=paper_id, option_id=option_id))
+
+
 
 def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper:
     if current_user.role == UserRole.ADMIN:
@@ -131,11 +173,13 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=SUPERVISOR_REQUIRED_MESSAGE)
 
     supervisor = _resolve_supervisor_lecturer(db, payload.supervisor_lecturer_id)
+    classification_ids = _validate_classification_options(db, payload.classification_option_ids)
 
     try:
         paper = Paper(
             title=payload.title.strip(),
             category_id=payload.category_id,
+            level_id=payload.level_id,
             created_by=current_user.id,
             journal_name=payload.journal_name,
             publication_year=payload.publication_year,
@@ -159,6 +203,8 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
             )
         )
 
+        _replace_paper_classifications(db=db, paper_id=paper.id, option_ids=classification_ids)
+
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -175,6 +221,7 @@ def list_papers(
     category_id: int | None = None,
     status_filter: str | None = None,
     mine: bool | None = None,
+    classification_option_id: int | None = None,
 ) -> list[Paper]:
     stmt: Select[tuple[Paper]] = _paper_query().order_by(Paper.id.desc())
     is_admin = current_user.role == UserRole.ADMIN
@@ -194,6 +241,13 @@ def list_papers(
 
     if mine:
         stmt = stmt.where(author_condition)
+
+    if classification_option_id is not None:
+        classification_condition = select(PaperClassification.id).where(
+            PaperClassification.paper_id == Paper.id,
+            PaperClassification.option_id == classification_option_id,
+        ).exists()
+        stmt = stmt.where(classification_condition)
 
     papers = list(db.scalars(stmt).unique())
     return _decorate_papers(papers)
@@ -252,6 +306,7 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
 
     supervisor_changed = "supervisor_lecturer_id" in values
     supervisor_id = values.get("supervisor_lecturer_id", paper.supervisor_lecturer_id)
+    classification_changed = "classification_option_ids" in values
 
     if current_user.role == UserRole.STUDENT and supervisor_id is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=SUPERVISOR_REQUIRED_MESSAGE)
@@ -260,8 +315,14 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
         supervisor = _resolve_supervisor_lecturer(db, values["supervisor_lecturer_id"])
         _apply_supervisor_snapshot(paper, supervisor)
 
+    if classification_changed:
+        classification_ids = _validate_classification_options(db, values.get("classification_option_ids"))
+        _replace_paper_classifications(db=db, paper_id=paper.id, option_ids=classification_ids)
+
     for field, value in values.items():
         if field == "supervisor_lecturer_id":
+            continue
+        if field == "classification_option_ids":
             continue
         setattr(paper, field, value)
 

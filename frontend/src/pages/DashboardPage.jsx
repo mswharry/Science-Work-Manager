@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import LevelStatistics from "../components/admin/LevelStatistics";
 import NotificationFeed from "../components/admin/NotificationFeed";
 import TopLecturers from "../components/admin/TopLecturers";
 import ErrorState from "../components/common/ErrorState";
@@ -177,6 +178,8 @@ export default function DashboardPage() {
             kind="year"
           />
         </div>
+
+        <LevelStatistics />
 
         <div className="grid grid--2">
           <TopLecturers items={topLecturers} onRefresh={loadDashboardData} />

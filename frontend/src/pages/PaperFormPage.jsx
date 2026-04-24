@@ -6,6 +6,8 @@ import PageHeader from "../components/common/PageHeader";
 import PaperForm from "../components/papers/PaperForm";
 import { useAuth } from "../contexts/AuthContext";
 import { listPaperCategories } from "../services/categoryService";
+import { listPaperClassificationGroups } from "../services/classificationService";
+import { getPublicPaperLevels } from "../services/levelService";
 import { createPaper, getPaper, updatePaper } from "../services/paperService";
 import { uploadPaperFile } from "../services/uploadService";
 import { listLecturers } from "../services/userService";
@@ -18,11 +20,15 @@ export default function PaperFormPage({ mode }) {
   const { user } = useAuth();
   const [initialValues, setInitialValues] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [levels, setLevels] = useState([]);
+  const [classificationGroups, setClassificationGroups] = useState([]);
   const [lecturers, setLecturers] = useState([]);
   const [categoryMode, setCategoryMode] = useState("select");
   const [categoryNote, setCategoryNote] = useState("");
   const [pageLoading, setPageLoading] = useState(mode === "edit");
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [levelsLoading, setLevelsLoading] = useState(true);
+  const [classificationLoading, setClassificationLoading] = useState(true);
   const [lecturersLoading, setLecturersLoading] = useState(user?.role === ROLES.STUDENT);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -74,12 +80,38 @@ export default function PaperFormPage({ mode }) {
     }
   };
 
+  const loadLevels = async () => {
+    setLevelsLoading(true);
+    try {
+      const data = await getPublicPaperLevels();
+      setLevels(data);
+    } catch (requestError) {
+      setLevels([]);
+    } finally {
+      setLevelsLoading(false);
+    }
+  };
+
+  const loadClassificationGroups = async () => {
+    setClassificationLoading(true);
+    try {
+      const data = await listPaperClassificationGroups();
+      setClassificationGroups(data);
+    } catch (requestError) {
+      setClassificationGroups([]);
+    } finally {
+      setClassificationLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadPaperData();
   }, [mode, paperId]);
 
   useEffect(() => {
     loadCategories();
+    loadLevels();
+    loadClassificationGroups();
     loadLecturerOptions();
   }, [user?.role]);
 
@@ -130,6 +162,10 @@ export default function PaperFormPage({ mode }) {
         categoriesLoading={categoriesLoading}
         categoryMode={categoryMode}
         categoryNote={categoryNote}
+        levels={levels}
+        levelsLoading={levelsLoading}
+        classificationGroups={classificationGroups}
+        classificationLoading={classificationLoading}
         currentUser={user}
         lecturers={lecturers}
         lecturersLoading={lecturersLoading}

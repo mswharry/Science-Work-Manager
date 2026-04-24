@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     category_id: int
+    level_id: int | None = None
     budget: float | None = None
     start_date: date | None = None
     end_date: date | None = None
@@ -20,6 +21,7 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     category_id: int | None = None
+    level_id: int | None = None
     budget: float | None = None
     start_date: date | None = None
     end_date: date | None = None
@@ -39,6 +41,9 @@ class ProjectOut(BaseModel):
     code: str | None = None
     category_id: int
     category_name: str | None = None
+    level_id: int | None = None
+    level_name: str | None = None
+    level_code: str | None = None
     leader_id: int
     leader_name: str | None = None
     leader_email: str | None = None

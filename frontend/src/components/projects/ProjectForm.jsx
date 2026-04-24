@@ -8,6 +8,7 @@ function createDefaultForm(initialValues) {
   return {
     name: initialValues?.name || "",
     category_id: initialValues?.category_id || "",
+    level_id: initialValues?.level_id || "",
     budget: initialValues?.budget ?? "",
     start_date: initialValues?.start_date || "",
     end_date: initialValues?.end_date || "",
@@ -19,7 +20,7 @@ function createDefaultForm(initialValues) {
   };
 }
 
-export default function ProjectForm({ initialValues, mode, categories, categoriesLoading, categoryMode, categoryNote, onSubmit, onCancel, submitting, submitError }) {
+export default function ProjectForm({ initialValues, mode, categories, categoriesLoading, categoryMode, categoryNote, levels, levelsLoading, onSubmit, onCancel, submitting, submitError }) {
   const [form, setForm] = useState(createDefaultForm(initialValues));
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function ProjectForm({ initialValues, mode, categories, categorie
     onSubmit({
       name: form.name.trim(),
       category_id: Number(form.category_id),
+      level_id: form.level_id ? Number(form.level_id) : null,
       budget: normalizeOptionalNumber(form.budget),
       start_date: normalizeOptionalText(form.start_date),
       end_date: normalizeOptionalText(form.end_date),
@@ -78,6 +80,17 @@ export default function ProjectForm({ initialValues, mode, categories, categorie
               <input className="input" type="number" min="1" value={form.category_id} onChange={(event) => handleChange("category_id", event.target.value)} placeholder="Ví dụ: 1" required />
             </FormField>
           )}
+
+          <FormField label="Cấp độ đề tài" hint={levelsLoading ? "Đang tải danh sách cấp độ..." : "Chọn cấp độ phù hợp với đề tài (tùy chọn)."}>
+            <select className="input" value={form.level_id} onChange={(event) => handleChange("level_id", event.target.value)} disabled={levelsLoading}>
+              <option value="">Không chọn</option>
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  {level.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
 
           <FormField label="Kinh phí">
             <input className="input" type="number" min="0" step="0.01" value={form.budget} onChange={(event) => handleChange("budget", event.target.value)} placeholder="Nhập kinh phí nếu có" />
