@@ -46,7 +46,6 @@ Hệ thống có 3 nhóm người dùng:
 
 ### Student
 - Đăng ký tài khoản
-- Đăng ký đề tài
 - Khai báo bài báo
 - Xem đề tài, bài báo, thông báo theo quyền
 - Xem hồ sơ cá nhân

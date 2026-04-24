@@ -75,7 +75,7 @@ Không được tự ý thêm hoặc bớt use case khi generate code.
 ## NHÓM 3: QUẢN LÝ ĐỀ TÀI
 
 ### UC-07: Đăng ký đề tài mới
-- Tác nhân: Lecturer, Student
+- Tác nhân: Lecturer
 - Mô tả: Tạo đề tài mới
 - Luật:
   - Người tạo là leader

@@ -1130,6 +1130,24 @@ body {
   padding: 10px 8px;
   border-radius: 0;
   background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link__badge {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  background: var(--danger);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .nav-link::after {
@@ -1704,6 +1722,12 @@ body {
   .nav-link {
     padding-inline: 8px;
     font-size: 0.9rem;
+  }
+
+  .nav-link__badge {
+    min-width: 18px;
+    height: 18px;
+    font-size: 0.68rem;
   }
 
   .nav-user__meta span {
