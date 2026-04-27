@@ -25,4 +25,5 @@ backend/science_work_manager.db
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/
+.idea/__pycache__/
+*.pyc

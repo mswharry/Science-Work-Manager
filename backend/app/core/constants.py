@@ -13,6 +13,9 @@ class CategoryType(str, Enum):
 
 
 class ProjectStatus(str, Enum):
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    CANCELED = "canceled"
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"

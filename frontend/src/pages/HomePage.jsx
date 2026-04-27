@@ -53,7 +53,7 @@ const roleActions = {
     { to: "/papers", label: "Tra cứu bài báo", description: "Kiểm tra hồ sơ bài báo và các ghi chú xử lý liên quan." },
   ],
   lecturer: [
-    { to: "/projects/new", label: "Tạo đề tài mới", description: "Khởi tạo hồ sơ đề tài nghiên cứu và gửi vào quy trình phê duyệt." },
+    { to: "/registration-periods", label: "Xem đợt đăng ký đề tài", description: "Xem các đợt đăng ký đang mở và thông tin liên quan." },
     { to: "/papers/new", label: "Khai báo bài báo", description: "Tạo hồ sơ bài báo hoặc công bố khoa học mới." },
     { to: "/projects", label: "Quản lý đề tài", description: "Theo dõi đề tài do bạn phụ trách và trạng thái xét duyệt." },
     { to: "/papers", label: "Quản lý bài báo", description: "Rà soát hồ sơ bài báo, DOI và phản hồi từ quản trị viên." },

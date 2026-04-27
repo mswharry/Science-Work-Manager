@@ -70,6 +70,13 @@ export default function Layout() {
       },
       {
         type: "row",
+        to: "/registration-periods",
+        label: "Đợt đăng ký",
+        description: "Thông tin thời gian và điều kiện",
+        icon: "◫",
+      },
+      {
+        type: "row",
         to: "/papers",
         label: "Bài báo",
         description: "Hồ sơ bài báo và công bố",

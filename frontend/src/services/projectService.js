@@ -32,6 +32,11 @@ export async function getProject(projectId) {
   return response.data;
 }
 
+export async function listProjectHistory(projectId) {
+  const response = await api.get(`/projects/${projectId}/history`);
+  return response.data;
+}
+
 export async function createProject(payload) {
   const response = await api.post("/projects", payload);
   return response.data;
@@ -43,12 +48,22 @@ export async function updateProject(projectId, payload) {
 }
 
 export async function deleteProject(projectId) {
-  const response = await api.delete(`/projects/${projectId}`);
+  const response = await api.put(`/projects/${projectId}/cancel`);
   return response.data;
 }
 
 export async function requestProjectCompletion(projectId) {
   const response = await api.put(`/projects/${projectId}/request-completion`);
+  return response.data;
+}
+
+export async function submitProject(projectId, payload = {}) {
+  const response = await api.put(`/projects/${projectId}/submit`, payload);
+  return response.data;
+}
+
+export async function cancelProject(projectId) {
+  const response = await api.put(`/projects/${projectId}/cancel`);
   return response.data;
 }
 

@@ -19,16 +19,16 @@ def get_current_user(db: DbSession, token: Annotated[str, Depends(oauth2_scheme)
         payload = decode_token(token)
         user_id = int(payload.get("sub"))
     except (ValueError, TypeError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token xác thực không hợp lệ.")
 
     user = get_user_by_id(db, user_id)
     if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive account.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tài khoản hiện không hoạt động.")
     return user
 
 
 def get_current_admin_user(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     if current_user.role.value != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Chỉ quản trị viên mới có quyền truy cập.")
     return current_user
 

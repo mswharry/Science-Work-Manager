@@ -25,6 +25,14 @@ def get_db() -> Generator[Session, None, None]:
 
 
 RUNTIME_MIGRATIONS = {
+    "registration_periods": {
+        "title": "VARCHAR(255)",
+        "registration_start": "DATE",
+        "registration_end": "DATE",
+        "description": "TEXT",
+        "requirements": "TEXT",
+        "is_open": "BOOLEAN DEFAULT 1",
+    },
     "papers": {
         "created_by": "INTEGER",
         "level_id": "INTEGER",
@@ -35,10 +43,16 @@ RUNTIME_MIGRATIONS = {
         "supervisor_department": "VARCHAR(255)",
     },
     "projects": {
+<<<<<<< HEAD
         "level_id": "INTEGER",
+=======
+        "registration_period_id": "INTEGER",
+>>>>>>> 1779bf6 (module dang ky de tai)
         "completion_requested": "BOOLEAN DEFAULT 0",
         "completion_requested_at": "DATETIME",
         "completion_requested_by": "INTEGER",
+        "submitted_at": "DATETIME",
+        "canceled_at": "DATETIME",
     },
 }
 

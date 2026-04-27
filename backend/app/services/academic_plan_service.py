@@ -22,14 +22,14 @@ def _validate_academic_year(academic_year: str) -> str:
     if not ACADEMIC_YEAR_PATTERN.match(normalized):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Academic year must use the format YYYY-YYYY.",
+            detail="Niên khóa phải có định dạng YYYY-YYYY.",
         )
 
     start_year, end_year = (int(part) for part in normalized.split("-"))
     if end_year != start_year + 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Academic year must span exactly one school year.",
+            detail="Niên khóa phải tương ứng đúng một năm học.",
         )
 
     return normalized
@@ -53,7 +53,7 @@ def list_academic_plans(db: Session) -> list[AcademicPlan]:
 def get_academic_plan(db: Session, plan_id: int) -> AcademicPlan:
     plan = db.scalar(select(AcademicPlan).where(AcademicPlan.id == plan_id))
     if not plan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Academic plan not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy kế hoạch năm học.")
     return plan
 
 
@@ -64,7 +64,7 @@ def create_academic_plan(db: Session, payload: AcademicPlanCreate, admin_user: U
     if not payload.sheet_file_url or not payload.sheet_file_name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Academic plan sheet file is required.",
+            detail="Vui lòng tải lên tệp kế hoạch năm học.",
         )
 
     if status_value == AcademicPlanStatus.ACTIVE:
@@ -89,7 +89,7 @@ def create_academic_plan(db: Session, payload: AcademicPlanCreate, admin_user: U
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Academic plan for this year already exists.",
+            detail="Kế hoạch năm học của niên khóa này đã tồn tại.",
         ) from exc
 
     db.refresh(plan)
@@ -128,7 +128,7 @@ def update_academic_plan(db: Session, plan_id: int, payload: AcademicPlanUpdate,
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Academic plan for this year already exists.",
+            detail="Kế hoạch năm học của niên khóa này đã tồn tại.",
         ) from exc
 
     db.refresh(plan)
@@ -163,7 +163,7 @@ def delete_academic_plan(db: Session, plan_id: int) -> None:
     if plan.status == AcademicPlanStatus.ACTIVE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Active academic plan must be closed before deletion.",
+            detail="Cần đóng kế hoạch năm học đang hoạt động trước khi xóa.",
         )
 
     sheet_url = plan.sheet_file_url

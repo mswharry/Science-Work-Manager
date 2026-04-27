@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ErrorState from "../components/common/ErrorState";
 import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import StatusBadge from "../components/common/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
-import { deleteProject, getProject, requestProjectCompletion } from "../services/projectService";
+import { cancelProject, getProject, submitProject } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { buildAssetUrl } from "../services/uploadService";
 import {
@@ -16,18 +16,17 @@ import {
   resolveProjectCategoryName,
   resolveProjectLeaderName,
 } from "../utils/formatters";
-import { canManageProject, canRequestProjectCompletion } from "../utils/permissions";
+import { canCancelProject, canManageProject, canSubmitProject } from "../utils/permissions";
 
-export default function ProjectDetailPage() {
+export default function ProjectRegistrationDetailPage() {
   const { projectId } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const [requesting, setRequesting] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const loadProjectData = async () => {
     setLoading(true);
@@ -37,7 +36,7 @@ export default function ProjectDetailPage() {
       const data = await getProject(projectId);
       setProject(data);
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Không thể tải chi tiết đề tài."));
+      setError(getApiErrorMessage(requestError, "Không thể tải chi tiết hồ sơ."));
     } finally {
       setLoading(false);
     }
@@ -47,54 +46,51 @@ export default function ProjectDetailPage() {
     loadProjectData();
   }, [projectId]);
 
-  const handleDelete = async () => {
-    const confirmed = window.confirm("Xóa đề tài này? Thao tác không thể hoàn tác.");
-    if (!confirmed) {
-      return;
-    }
+  const handleCancel = async () => {
+    const confirmed = window.confirm("Hủy hồ sơ này? Thao tác này sẽ giữ lịch sử.");
+    if (!confirmed) return;
 
-    setDeleting(true);
+    setCanceling(true);
     setActionError("");
 
     try {
-      await deleteProject(projectId);
-      navigate("/projects");
+      const updated = await cancelProject(projectId);
+      setProject(updated);
     } catch (requestError) {
-      setActionError(getApiErrorMessage(requestError, "Không thể xóa đề tài."));
+      setActionError(getApiErrorMessage(requestError, "Không thể hủy hồ sơ."));
     } finally {
-      setDeleting(false);
+      setCanceling(false);
     }
   };
 
-  const handleRequestCompletion = async () => {
-    const confirmed = window.confirm("Gửi yêu cầu xác nhận hoàn thành đề tài này tới quản trị viên?");
-    if (!confirmed) {
-      return;
-    }
+  const handleSubmit = async () => {
+    const confirmed = window.confirm("Nộp hồ sơ này lên hệ thống?");
+    if (!confirmed) return;
 
-    setRequesting(true);
+    setSubmitting(true);
     setActionError("");
 
     try {
-      const updated = await requestProjectCompletion(projectId);
+      const updated = await submitProject(projectId);
       setProject(updated);
     } catch (requestError) {
-      setActionError(getApiErrorMessage(requestError, "Không thể gửi yêu cầu hoàn thành đề tài."));
+      setActionError(getApiErrorMessage(requestError, "Không thể nộp hồ sơ."));
     } finally {
-      setRequesting(false);
+      setSubmitting(false);
     }
   };
 
   if (loading) {
-    return <LoadingState title="Đang tải đề tài" message="Hệ thống đang lấy thông tin chi tiết đề tài." />;
+    return <LoadingState title="Đang tải hồ sơ" message="Hệ thống đang lấy thông tin chi tiết hồ sơ đề tài." />;
   }
 
   if (!project) {
-    return <ErrorState title="Không tìm thấy đề tài" message={error || "Hồ sơ đề tài không tồn tại hoặc bạn không có quyền truy cập."} onRetry={loadProjectData} />;
+    return <ErrorState title="Không tìm thấy hồ sơ" message={error || "Hồ sơ đề tài không tồn tại hoặc bạn không có quyền truy cập."} onRetry={loadProjectData} />;
   }
 
   const canManage = canManageProject(project, user);
-  const canRequestCompletion = canRequestProjectCompletion(project, user);
+  const canSubmit = canSubmitProject(project, user);
+  const canCancel = canCancelProject(project, user);
 
   return (
     <div className="stack-xl">
@@ -107,20 +103,23 @@ export default function ProjectDetailPage() {
             <Link to="/projects" className="button button--secondary nav-button-link">
               Quay lại danh sách
             </Link>
-            {canRequestCompletion ? (
-              <button type="button" className="button" onClick={handleRequestCompletion} disabled={requesting}>
-                {requesting ? "Đang gửi..." : "Gửi yêu cầu hoàn thành"}
+            <Link to={`/projects/${project.id}/history`} className="button button--ghost nav-button-link">
+              Lịch sử cập nhật
+            </Link>
+            {canSubmit ? (
+              <button type="button" className="button" onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "Đang nộp..." : "Nộp hồ sơ"}
+              </button>
+            ) : null}
+            {canCancel ? (
+              <button type="button" className="button button--danger" onClick={handleCancel} disabled={canceling}>
+                {canceling ? "Đang hủy..." : "Hủy hồ sơ"}
               </button>
             ) : null}
             {canManage ? (
-              <>
-                <Link to={`/projects/${project.id}/edit`} className="button nav-button-link">
-                  Chỉnh sửa
-                </Link>
-                <button type="button" className="button button--danger" onClick={handleDelete} disabled={deleting}>
-                  {deleting ? "Đang xóa..." : "Xóa đề tài"}
-                </button>
-              </>
+              <Link to={`/projects/${project.id}/edit`} className="button nav-button-link">
+                Chỉnh sửa
+              </Link>
             ) : null}
           </div>
         }
@@ -144,6 +143,10 @@ export default function ProjectDetailPage() {
               <span className="key-value-list__value">{formatProjectRecordCode(project)}</span>
             </div>
             <div className="key-value-list__item">
+              <span className="key-value-list__label">Đợt đăng ký</span>
+              <span className="key-value-list__value">{project.registration_period_name || "—"}</span>
+            </div>
+            <div className="key-value-list__item">
               <span className="key-value-list__label">Danh mục</span>
               <span className="key-value-list__value">{resolveProjectCategoryName(project)}</span>
             </div>
@@ -163,24 +166,28 @@ export default function ProjectDetailPage() {
               <span className="key-value-list__label">Ngày kết thúc</span>
               <span className="key-value-list__value">{formatDate(project.end_date)}</span>
             </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Ngày tạo</span>
+              <span className="key-value-list__value">{formatDateTime(project.created_at)}</span>
+            </div>
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Cập nhật cuối</span>
+              <span className="key-value-list__value">{formatDateTime(project.updated_at)}</span>
+            </div>
           </div>
         </section>
 
         <section className="panel stack-md">
           <div className="section-heading">
             <div>
-              <h2 className="section-title">Phê duyệt và tài liệu</h2>
-              <p className="section-description">Thông tin xử lý hồ sơ và các đường dẫn tệp đính kèm nếu có.</p>
+              <h2 className="section-title">Tài liệu và trạng thái</h2>
+              <p className="section-description">Tài liệu đính kèm và trạng thái nộp hồ sơ hiện tại.</p>
             </div>
           </div>
 
           <div className="key-value-list">
             <div className="key-value-list__item">
-              <span className="key-value-list__label">Thời gian duyệt</span>
-              <span className="key-value-list__value">{formatDateTime(project.reviewed_at)}</span>
-            </div>
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Tệp đề cương</span>
+              <span className="key-value-list__label">Tài liệu đề cương</span>
               <span className="key-value-list__value">
                 {project.proposal_file ? (
                   <a href={buildAssetUrl(project.proposal_file)} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
@@ -192,7 +199,7 @@ export default function ProjectDetailPage() {
               </span>
             </div>
             <div className="key-value-list__item">
-              <span className="key-value-list__label">Báo cáo cuối kỳ</span>
+              <span className="key-value-list__label">Báo cáo cuối cùng</span>
               <span className="key-value-list__value">
                 {project.final_report_file ? (
                   <a href={buildAssetUrl(project.final_report_file)} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
@@ -204,24 +211,14 @@ export default function ProjectDetailPage() {
               </span>
             </div>
             <div className="key-value-list__item">
-              <span className="key-value-list__label">Tạo lúc</span>
-              <span className="key-value-list__value">{formatDateTime(project.created_at)}</span>
+              <span className="key-value-list__label">Đã nộp lúc</span>
+              <span className="key-value-list__value">{formatDateTime(project.submitted_at)}</span>
             </div>
             <div className="key-value-list__item">
-              <span className="key-value-list__label">Cập nhật lúc</span>
-              <span className="key-value-list__value">{formatDateTime(project.updated_at)}</span>
-            </div>
-            <div className="key-value-list__item">
-              <span className="key-value-list__label">Yêu cầu hoàn thành</span>
-              <span className="key-value-list__value">
-                {project.completion_requested
-                  ? `Đã gửi lúc ${formatDateTime(project.completion_requested_at)}`
-                  : "Chưa gửi"}
-              </span>
+              <span className="key-value-list__label">Đã hủy lúc</span>
+              <span className="key-value-list__value">{formatDateTime(project.canceled_at)}</span>
             </div>
           </div>
-
-          {project.review_note ? <div className="inline-note">Ghi chú duyệt: {project.review_note}</div> : null}
         </section>
       </div>
 
@@ -234,12 +231,6 @@ export default function ProjectDetailPage() {
         </div>
         <p className="section-description">{project.description || "Chưa có mô tả chi tiết cho đề tài này."}</p>
       </section>
-
-      {project.completion_requested ? (
-        <div className="notice notice--info">
-          Đề tài đã gửi yêu cầu xác nhận hoàn thành tới quản trị viên. Vui lòng chờ xử lý tại khu vực Quản trị.
-        </div>
-      ) : null}
     </div>
   );
 }

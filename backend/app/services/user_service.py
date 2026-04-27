@@ -23,7 +23,7 @@ def list_users(
 
     if role:
         if role not in VALID_ROLES:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role filter.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bộ lọc vai trò không hợp lệ.")
         stmt = stmt.where(User.role == UserRole(role))
     if is_active is not None:
         stmt = stmt.where(User.is_active == is_active)
@@ -51,7 +51,7 @@ def list_available_lecturers(db: Session) -> list[User]:
 def get_user_by_id(db: Session, user_id: int) -> User:
     user = db.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy người dùng.")
     return user
 
 
@@ -60,7 +60,7 @@ def approve_user(db: Session, user_id: int, payload: UserApproveRequest) -> User
     if payload.role not in {UserRole.STUDENT.value, UserRole.LECTURER.value}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Approved role must be student or lecturer.",
+            detail="Vai trò được phê duyệt chỉ có thể là sinh viên hoặc giảng viên.",
         )
 
     user = get_user_by_id(db, user_id)
@@ -73,7 +73,7 @@ def approve_user(db: Session, user_id: int, payload: UserApproveRequest) -> User
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to update user due to data constraint.",
+            detail="Không thể cập nhật người dùng do xung đột dữ liệu.",
         ) from exc
 
     db.refresh(user)

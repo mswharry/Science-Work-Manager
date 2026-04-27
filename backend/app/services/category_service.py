@@ -14,7 +14,7 @@ def _ensure_category_type(category_type: str) -> CategoryType:
     try:
         return CategoryType(category_type)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid category type.") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Loại danh mục không hợp lệ.") from exc
 
 
 def list_categories_by_type(db: Session, category_type: str) -> list[Category]:
@@ -29,7 +29,7 @@ def create_category(db: Session, payload: CategoryCreate, category_type: str) ->
     if payload.type and payload.type != category_enum.value:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Category type must be {category_enum.value}.",
+            detail=f"Loại danh mục phải là {category_enum.value}.",
         )
 
     category = Category(
@@ -45,7 +45,7 @@ def create_category(db: Session, payload: CategoryCreate, category_type: str) ->
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Category with this name already exists for the selected type.",
+            detail="Danh mục này đã tồn tại trong nhóm đang chọn.",
         ) from exc
 
     db.refresh(category)
@@ -56,7 +56,7 @@ def get_category_by_id_and_type(db: Session, category_id: int, category_type: st
     category_enum = _ensure_category_type(category_type)
     category = db.scalar(select(Category).where(Category.id == category_id, Category.type == category_enum))
     if not category:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy danh mục.")
     return category
 
 
@@ -76,7 +76,7 @@ def update_category(db: Session, category_id: int, payload: CategoryUpdate, cate
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Category with this name already exists for the selected type.",
+            detail="Danh mục này đã tồn tại trong nhóm đang chọn.",
         ) from exc
 
     db.refresh(category)
@@ -92,5 +92,5 @@ def delete_category(db: Session, category_id: int, category_type: str) -> None:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete this category because it is being used.",
+            detail="Không thể xóa danh mục vì đang có hồ sơ sử dụng.",
         ) from exc
