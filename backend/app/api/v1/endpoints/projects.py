@@ -7,15 +7,17 @@ from fastapi import APIRouter, Depends, Query, status
 from app.api.deps import DbSession, get_current_admin_user, get_current_user
 from app.models.user import User
 from app.schemas.common import MessageResponse
+from app.schemas.execution_history import ExecutionHistoryOut
 from app.schemas.project import ProjectCreate, ProjectOut, ProjectReviewRequest, ProjectSubmitRequest, ProjectUpdate
-from app.schemas.project_history import ProjectHistoryOut
+from app.schemas.registration_history import RegistrationHistoryOut
 from app.services.project_service import (
     complete_project,
     create_project,
     delete_project,
     get_project_detail,
+    list_execution_history,
+    list_registration_history,
     list_projects,
-    list_project_history,
     submit_project,
     request_project_completion,
     review_project,
@@ -67,14 +69,24 @@ def get_project_detail_endpoint(
     return ProjectOut.model_validate(project)
 
 
-@router.get("/projects/{project_id}/history", response_model=list[ProjectHistoryOut])
-def list_project_history_endpoint(
+@router.get("/projects/{project_id}/registration-history", response_model=list[RegistrationHistoryOut])
+def list_registration_history_endpoint(
     project_id: int,
     db: DbSession,
     current_user: Annotated[User, Depends(get_current_user)],
-) -> list[ProjectHistoryOut]:
-    histories = list_project_history(db=db, project_id=project_id, current_user=current_user)
-    return [ProjectHistoryOut.model_validate(history) for history in histories]
+) -> list[RegistrationHistoryOut]:
+    histories = list_registration_history(db=db, project_id=project_id, current_user=current_user)
+    return [RegistrationHistoryOut.model_validate(history) for history in histories]
+
+
+@router.get("/projects/{project_id}/execution-history", response_model=list[ExecutionHistoryOut])
+def list_execution_history_endpoint(
+    project_id: int,
+    db: DbSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> list[ExecutionHistoryOut]:
+    histories = list_execution_history(db=db, project_id=project_id, current_user=current_user)
+    return [ExecutionHistoryOut.model_validate(history) for history in histories]
 
 
 @router.put("/projects/{project_id}", response_model=ProjectOut)

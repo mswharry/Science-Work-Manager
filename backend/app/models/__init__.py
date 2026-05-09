@@ -5,7 +5,7 @@ from app.models.category import Category
 from app.models.classification import PaperClassificationGroup, PaperClassificationOption
 from app.models.level import Level
 from app.models.notification import Notification
-from app.models.project_history import ProjectHistory
+from app.models.project_history import ExecutionHistory, RegistrationHistory
 from app.models.registration_period import RegistrationPeriod
 from app.models.paper import Paper
 from app.models.project import Project
@@ -19,7 +19,8 @@ __all__ = [
     "Level",
     "Project",
     "RegistrationPeriod",
-    "ProjectHistory",
+    "RegistrationHistory",
+    "ExecutionHistory",
     "ProjectMember",
     "Paper",
     "PaperAuthor",

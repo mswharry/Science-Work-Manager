@@ -3,18 +3,40 @@ from __future__ import annotations
 from datetime import date
 
 from fastapi import HTTPException, status
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.registration_period import RegistrationPeriod
 
 
-def _period_query() -> Select[tuple[RegistrationPeriod]]:
-    return select(RegistrationPeriod).order_by(RegistrationPeriod.is_open.desc(), RegistrationPeriod.registration_start.desc().nullslast(), RegistrationPeriod.id.desc())
+def _period_query(keyword: str | None = None, year: int | None = None) -> Select[tuple[RegistrationPeriod]]:
+    stmt = select(RegistrationPeriod)
+    if keyword:
+        keyword_like = f"%{keyword.strip()}%"
+        stmt = stmt.where(
+            or_(
+                RegistrationPeriod.title.ilike(keyword_like),
+                RegistrationPeriod.description.ilike(keyword_like),
+                RegistrationPeriod.requirements.ilike(keyword_like),
+            )
+        )
+    if year is not None:
+        year_value = str(year)
+        stmt = stmt.where(
+            or_(
+                func.strftime("%Y", RegistrationPeriod.registration_start) == year_value,
+                func.strftime("%Y", RegistrationPeriod.registration_end) == year_value,
+            )
+        )
+    return stmt.order_by(
+        RegistrationPeriod.is_open.desc(),
+        RegistrationPeriod.registration_start.desc().nullslast(),
+        RegistrationPeriod.id.desc(),
+    )
 
 
-def list_registration_periods(db: Session) -> list[RegistrationPeriod]:
-    return list(db.scalars(_period_query()))
+def list_registration_periods(db: Session, keyword: str | None = None, year: int | None = None) -> list[RegistrationPeriod]:
+    return list(db.scalars(_period_query(keyword=keyword, year=year)))
 
 
 def get_registration_period(db: Session, period_id: int) -> RegistrationPeriod:

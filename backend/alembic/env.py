@@ -10,6 +10,7 @@ from app.models.notification import Notification
 from app.models.paper import Paper
 from app.models.project import Project
 from app.models.association import PaperAuthor, ProjectMember
+from app.models.project_history import ExecutionHistory, RegistrationHistory
 from app.models.user import User
 
 config = context.config

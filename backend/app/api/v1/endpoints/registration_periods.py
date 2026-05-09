@@ -16,8 +16,10 @@ router = APIRouter(tags=["registration-periods"])
 def list_registration_periods_endpoint(
     db: DbSession,
     _: Annotated[User, Depends(get_current_user)],
+    keyword: str | None = None,
+    year: int | None = None,
 ) -> list[RegistrationPeriodOut]:
-    periods = list_registration_periods(db=db)
+    periods = list_registration_periods(db=db, keyword=keyword, year=year)
     return [RegistrationPeriodOut.model_validate(period) for period in periods]
 
 

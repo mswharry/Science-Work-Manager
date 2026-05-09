@@ -52,7 +52,6 @@ export default function LoginPage() {
           <h2 className="section-title">Lưu ý truy cập</h2>
           <ul className="simple-list">
             <li>Tài khoản giảng viên chỉ đăng nhập được sau khi được quản trị viên phê duyệt.</li>
-            <li>Nếu phiên làm việc hết hạn, hệ thống sẽ yêu cầu đăng nhập lại.</li>
             <li>Sau khi đăng nhập, giao diện sẽ hiển thị chức năng tương ứng với vai trò của bạn.</li>
           </ul>
         </div>

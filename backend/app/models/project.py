@@ -48,4 +48,5 @@ class Project(Base, TimestampMixin):
     reviewer = relationship("User", back_populates="reviewed_projects", foreign_keys=[reviewed_by])
     completion_requester = relationship("User", foreign_keys=[completion_requested_by])
     members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
-    histories = relationship("ProjectHistory", back_populates="project", cascade="all, delete-orphan")
+    registration_histories = relationship("RegistrationHistory", back_populates="project", cascade="all, delete-orphan")
+    execution_histories = relationship("ExecutionHistory", back_populates="project", cascade="all, delete-orphan")

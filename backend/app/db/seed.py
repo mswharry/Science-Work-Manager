@@ -5,12 +5,9 @@ from app.core.constants import CategoryType, EntityType, UserRole
 from app.core.database import SessionLocal
 from app.core.security import get_password_hash
 from app.models.category import Category
-<<<<<<< HEAD
 from app.models.classification import PaperClassificationGroup, PaperClassificationOption
 from app.models.level import Level
-=======
 from app.models.registration_period import RegistrationPeriod
->>>>>>> 1779bf6 (module dang ky de tai)
 from app.models.user import User
 
 
@@ -79,7 +76,6 @@ def seed_categories() -> None:
         db.commit()
 
 
-<<<<<<< HEAD
 def seed_levels() -> None:
     project_levels = [
         ("cap_khoa", "Cấp khoa", EntityType.PROJECT, 1, 10),
@@ -254,7 +250,8 @@ def seed_paper_classifications() -> None:
                 )
 
         db.commit()
-=======
+
+
 def seed_registration_periods() -> None:
     with SessionLocal() as db:
         exists = db.scalar(select(RegistrationPeriod))
@@ -268,18 +265,14 @@ def seed_registration_periods() -> None:
                 )
             )
             db.commit()
->>>>>>> 1779bf6 (module dang ky de tai)
 
 
 def run_seed() -> None:
     seed_admin()
     seed_categories()
-<<<<<<< HEAD
     seed_levels()
     seed_paper_classifications()
-=======
     seed_registration_periods()
->>>>>>> 1779bf6 (module dang ky de tai)
 
 
 if __name__ == "__main__":

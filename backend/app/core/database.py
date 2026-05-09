@@ -43,11 +43,8 @@ RUNTIME_MIGRATIONS = {
         "supervisor_department": "VARCHAR(255)",
     },
     "projects": {
-<<<<<<< HEAD
         "level_id": "INTEGER",
-=======
         "registration_period_id": "INTEGER",
->>>>>>> 1779bf6 (module dang ky de tai)
         "completion_requested": "BOOLEAN DEFAULT 0",
         "completion_requested_at": "DATETIME",
         "completion_requested_by": "INTEGER",

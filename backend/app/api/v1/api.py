@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-<<<<<<< HEAD
 from app.api.v1.endpoints import (
     academic_plans,
     auth,
@@ -10,13 +9,11 @@ from app.api.v1.endpoints import (
     notifications,
     papers,
     projects,
+    registration_periods,
     statistics,
     uploads,
     users,
 )
-=======
-from app.api.v1.endpoints import academic_plans, auth, categories, notifications, papers, projects, registration_periods, statistics, uploads, users
->>>>>>> 1779bf6 (module dang ky de tai)
 
 api_router = APIRouter()
 api_router.include_router(auth.router)

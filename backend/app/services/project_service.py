@@ -8,10 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.constants import CategoryType, PROJECT_STATUS_VALUES, ProjectStatus, UserRole
-from app.models.association import ProjectMember
 from app.models.category import Category
+from app.models.project_history import ExecutionHistory, RegistrationHistory
 from app.models.project import Project
-from app.models.project_history import ProjectHistory
 from app.models.registration_period import RegistrationPeriod
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectReviewRequest, ProjectSubmitRequest, ProjectUpdate
@@ -77,17 +76,30 @@ def _decorate_projects(projects: list[Project]) -> list[Project]:
     return [_decorate_project(project) for project in projects]
 
 
-def _history_query() -> Select[tuple[ProjectHistory]]:
-    return select(ProjectHistory).options(joinedload(ProjectHistory.performer))
+def _registration_history_query() -> Select[tuple[RegistrationHistory]]:
+    return select(RegistrationHistory).options(joinedload(RegistrationHistory.performer))
 
 
-def _decorate_history(history: ProjectHistory) -> ProjectHistory:
+def _execution_history_query() -> Select[tuple[ExecutionHistory]]:
+    return select(ExecutionHistory).options(joinedload(ExecutionHistory.performer))
+
+
+def _decorate_registration_history(history: RegistrationHistory) -> RegistrationHistory:
     history.performed_by_name = history.performer.full_name if history.performer else None
     return history
 
 
-def _decorate_histories(histories: list[ProjectHistory]) -> list[ProjectHistory]:
-    return [_decorate_history(history) for history in histories]
+def _decorate_execution_history(history: ExecutionHistory) -> ExecutionHistory:
+    history.performed_by_name = history.performer.full_name if history.performer else None
+    return history
+
+
+def _decorate_registration_histories(histories: list[RegistrationHistory]) -> list[RegistrationHistory]:
+    return [_decorate_registration_history(history) for history in histories]
+
+
+def _decorate_execution_histories(histories: list[ExecutionHistory]) -> list[ExecutionHistory]:
+    return [_decorate_execution_history(history) for history in histories]
 
 
 def _project_status_value(value: ProjectStatus | str | None) -> str | None:
@@ -96,7 +108,7 @@ def _project_status_value(value: ProjectStatus | str | None) -> str | None:
     return value.value if hasattr(value, "value") else str(value)
 
 
-def _record_project_history(
+def _record_registration_history(
     db: Session,
     project: Project,
     action: str,
@@ -106,7 +118,28 @@ def _record_project_history(
     new_status: ProjectStatus | str | None = None,
 ) -> None:
     db.add(
-        ProjectHistory(
+        RegistrationHistory(
+            project_id=project.id,
+            action=action,
+            detail=detail,
+            previous_status=_project_status_value(previous_status),
+            new_status=_project_status_value(new_status),
+            performed_by=current_user.id if current_user else None,
+        )
+    )
+
+
+def _record_execution_history(
+    db: Session,
+    project: Project,
+    action: str,
+    detail: str | None,
+    current_user: User | None,
+    previous_status: ProjectStatus | str | None = None,
+    new_status: ProjectStatus | str | None = None,
+) -> None:
+    db.add(
+        ExecutionHistory(
             project_id=project.id,
             action=action,
             detail=detail,
@@ -140,14 +173,6 @@ def _validate_registration_period(db: Session, registration_period_id: int | Non
     if not period.is_open:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=PROJECT_REGISTRATION_PERIOD_CLOSED)
     return period
-
-
-
-def _is_project_owner_stmt(user_id: int):
-    return or_(
-        Project.leader_id == user_id,
-        select(ProjectMember.id).where(ProjectMember.project_id == Project.id, ProjectMember.user_id == user_id).exists(),
-    )
 
 
 
@@ -201,7 +226,7 @@ def create_project(db: Session, payload: ProjectCreate, current_user: User) -> P
 
     try:
         db.flush()
-        _record_project_history(
+        _record_registration_history(
             db=db,
             project=project,
             action=PROJECT_HISTORY_CREATE,
@@ -229,10 +254,11 @@ def list_projects(
 ) -> list[Project]:
     stmt: Select[tuple[Project]] = _project_query().order_by(Project.id.desc())
     is_admin = current_user.role == UserRole.ADMIN
-    owner_condition = _is_project_owner_stmt(current_user.id)
+    if current_user.role not in {UserRole.ADMIN, UserRole.LECTURER}:
+        return []
 
     if not is_admin:
-        stmt = stmt.where(owner_condition)
+        stmt = stmt.where(Project.leader_id == current_user.id)
 
     if status_filter:
         stmt = stmt.where(Project.status == _validate_project_status(status_filter))
@@ -245,7 +271,7 @@ def list_projects(
         stmt = stmt.where(or_(Project.name.ilike(keyword_like), Project.description.ilike(keyword_like)))
 
     if mine:
-        stmt = stmt.where(owner_condition)
+        stmt = stmt.where(Project.leader_id == current_user.id)
 
     if completion_requested is not None:
         stmt = stmt.where(Project.completion_requested == completion_requested)
@@ -264,9 +290,9 @@ def get_project_by_id(db: Session, project_id: int) -> Project:
 
 
 def _can_view_project(project: Project, current_user: User, db: Session) -> bool:
-    if current_user.role == UserRole.ADMIN:
+    if current_user.role == UserRole.LECTURER and project.leader_id == current_user.id:
         return True
-    if project.leader_id == current_user.id:
+    if current_user.role == UserRole.ADMIN and project.status in {ProjectStatus.APPROVED, ProjectStatus.COMPLETED}:
         return True
     return False
 
@@ -279,11 +305,24 @@ def get_project_detail(db: Session, project_id: int, current_user: User) -> Proj
     return project
 
 
-def list_project_history(db: Session, project_id: int, current_user: User) -> list[ProjectHistory]:
+def list_registration_history(db: Session, project_id: int, current_user: User) -> list[RegistrationHistory]:
     _ = get_project_detail(db=db, project_id=project_id, current_user=current_user)
-    stmt = _history_query().where(ProjectHistory.project_id == project_id).order_by(ProjectHistory.created_at.desc())
+    stmt = (
+        _registration_history_query()
+        .where(RegistrationHistory.project_id == project_id)
+        .order_by(RegistrationHistory.created_at.desc())
+    )
     histories = list(db.scalars(stmt).unique())
-    return _decorate_histories(histories)
+    return _decorate_registration_histories(histories)
+
+
+def list_execution_history(db: Session, project_id: int, current_user: User) -> list[ExecutionHistory]:
+    _ = get_project_detail(db=db, project_id=project_id, current_user=current_user)
+    stmt = _execution_history_query().where(ExecutionHistory.project_id == project_id).order_by(
+        ExecutionHistory.created_at.desc()
+    )
+    histories = list(db.scalars(stmt).unique())
+    return _decorate_execution_histories(histories)
 
 
 
@@ -317,7 +356,7 @@ def update_project(db: Session, project_id: int, payload: ProjectUpdate, current
     for field, value in values.items():
         setattr(project, field, value)
 
-    _record_project_history(
+    _record_registration_history(
         db=db,
         project=project,
         action=PROJECT_HISTORY_UPDATE,
@@ -344,7 +383,7 @@ def delete_project(db: Session, project_id: int, current_user: User) -> None:
     previous_status = project.status
     project.status = ProjectStatus.CANCELED
     project.canceled_at = datetime.now(timezone.utc)
-    _record_project_history(
+    _record_registration_history(
         db=db,
         project=project,
         action=PROJECT_HISTORY_CANCEL,
@@ -372,7 +411,7 @@ def submit_project(db: Session, project_id: int, current_user: User, payload: Pr
 
     project.status = ProjectStatus.SUBMITTED
     project.submitted_at = datetime.now(timezone.utc)
-    _record_project_history(
+    _record_registration_history(
         db=db,
         project=project,
         action=PROJECT_HISTORY_SUBMIT,
@@ -406,7 +445,7 @@ def review_project(db: Session, project_id: int, payload: ProjectReviewRequest, 
     project.review_note = payload.note
     project.reviewed_by = admin_user.id
     project.reviewed_at = datetime.now(timezone.utc)
-    _record_project_history(
+    _record_registration_history(
         db=db,
         project=project,
         action=PROJECT_HISTORY_REVIEW,
@@ -432,7 +471,7 @@ def request_project_completion(db: Session, project_id: int, current_user: User)
     project.completion_requested = True
     project.completion_requested_at = datetime.now(timezone.utc)
     project.completion_requested_by = current_user.id
-    _record_project_history(
+    _record_execution_history(
         db=db,
         project=project,
         action=PROJECT_HISTORY_REQUEST_COMPLETION,
@@ -453,7 +492,7 @@ def complete_project(db: Session, project_id: int, admin_user: User | None = Non
 
     previous_status = project.status
     project.status = ProjectStatus.COMPLETED
-    _record_project_history(
+    _record_execution_history(
         db=db,
         project=project,
         action=PROJECT_HISTORY_COMPLETE,

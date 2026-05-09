@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class ProjectHistoryOut(BaseModel):
+class RegistrationHistoryOut(BaseModel):
     id: int
     project_id: int
     action: str

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { CATEGORY_ACCESS_NOTE } from "../../utils/constants";
 import { normalizeOptionalNumber, normalizeOptionalText } from "../../utils/formatters";
 import FormField from "../common/FormField";
@@ -8,11 +8,7 @@ function createDefaultForm(initialValues, registrationPeriod) {
   return {
     name: initialValues?.name || "",
     category_id: initialValues?.category_id || "",
-<<<<<<< HEAD:frontend/src/components/projects/ProjectForm.jsx
-    level_id: initialValues?.level_id || "",
-=======
     registration_period_id: initialValues?.registration_period_id || registrationPeriod?.id || "",
->>>>>>> 1779bf6 (module dang ky de tai):frontend/src/components/projects/ProjectRegistrationForm.jsx
     budget: initialValues?.budget ?? "",
     start_date: initialValues?.start_date || "",
     end_date: initialValues?.end_date || "",
@@ -24,9 +20,6 @@ function createDefaultForm(initialValues, registrationPeriod) {
   };
 }
 
-<<<<<<< HEAD:frontend/src/components/projects/ProjectForm.jsx
-export default function ProjectForm({ initialValues, mode, categories, categoriesLoading, categoryMode, categoryNote, levels, levelsLoading, onSubmit, onCancel, submitting, submitError }) {
-=======
 export default function ProjectRegistrationForm({
   initialValues,
   mode,
@@ -40,8 +33,7 @@ export default function ProjectRegistrationForm({
   submitting,
   submitError,
 }) {
->>>>>>> 1779bf6 (module dang ky de tai):frontend/src/components/projects/ProjectRegistrationForm.jsx
-  const [form, setForm] = useState(createDefaultForm(initialValues));
+  const [form, setForm] = useState(createDefaultForm(initialValues, registrationPeriod));
 
   useEffect(() => {
     setForm(createDefaultForm(initialValues, registrationPeriod));
@@ -64,11 +56,7 @@ export default function ProjectRegistrationForm({
     onSubmit({
       name: form.name.trim(),
       category_id: Number(form.category_id),
-<<<<<<< HEAD:frontend/src/components/projects/ProjectForm.jsx
-      level_id: form.level_id ? Number(form.level_id) : null,
-=======
       registration_period_id: mode === "create" ? Number(form.registration_period_id) : undefined,
->>>>>>> 1779bf6 (module dang ky de tai):frontend/src/components/projects/ProjectRegistrationForm.jsx
       budget: normalizeOptionalNumber(form.budget),
       start_date: normalizeOptionalText(form.start_date),
       end_date: normalizeOptionalText(form.end_date),
@@ -130,51 +118,35 @@ export default function ProjectRegistrationForm({
             </FormField>
           )}
 
-<<<<<<< HEAD:frontend/src/components/projects/ProjectForm.jsx
-          <FormField label="Cấp độ đề tài" hint={levelsLoading ? "Đang tải danh sách cấp độ..." : "Chọn cấp độ phù hợp với đề tài (tùy chọn)."}>
-            <select className="input" value={form.level_id} onChange={(event) => handleChange("level_id", event.target.value)} disabled={levelsLoading}>
-              <option value="">Không chọn</option>
-              {levels.map((level) => (
-                <option key={level.id} value={level.id}>
-                  {level.name}
-                </option>
-              ))}
-            </select>
-          </FormField>
+          {mode === "create" ? (
+            <FormField label="Đợt đăng ký đề tài" hint="Đợt đăng ký đã được chọn trước khi mở form.">
+              <input className="input" value={registrationPeriod?.title || ""} disabled />
+            </FormField>
+          ) : (
+            <FormField label="Đợt đăng ký đề tài" hint="Đợt đăng ký đã được gắn sẵn với hồ sơ này.">
+              <input className="input" value={initialValues?.registration_period_name || ""} disabled />
+            </FormField>
+          )}
 
           <FormField label="Kinh phí">
-            <input className="input" type="number" min="0" step="0.01" value={form.budget} onChange={(event) => handleChange("budget", event.target.value)} placeholder="Nhập kinh phí nếu có" />
-=======
-        {mode === "create" ? (
-          <FormField label="Đợt đăng ký đề tài" hint="Đợt đăng ký đã được chọn trước khi mở form.">
-            <input className="input" value={registrationPeriod?.title || ""} disabled />
->>>>>>> 1779bf6 (module dang ky de tai):frontend/src/components/projects/ProjectRegistrationForm.jsx
+            <input
+              className="input"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.budget}
+              onChange={(event) => handleChange("budget", event.target.value)}
+              placeholder="Nhập kinh phí nếu có"
+            />
           </FormField>
-        ) : (
-          <FormField label="Đợt đăng ký đề tài" hint="Đợt đăng ký đã được gắn sẵn với hồ sơ này.">
-            <input className="input" value={initialValues?.registration_period_name || ""} disabled />
+
+          <FormField label="Ngày bắt đầu">
+            <input className="input" type="date" value={form.start_date} onChange={(event) => handleChange("start_date", event.target.value)} />
           </FormField>
-        )}
 
-        <FormField label="Kinh phí">
-          <input
-            className="input"
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.budget}
-            onChange={(event) => handleChange("budget", event.target.value)}
-            placeholder="Nhập kinh phí nếu có"
-          />
-        </FormField>
-
-        <FormField label="Ngày bắt đầu">
-          <input className="input" type="date" value={form.start_date} onChange={(event) => handleChange("start_date", event.target.value)} />
-        </FormField>
-
-        <FormField label="Ngày kết thúc">
-          <input className="input" type="date" value={form.end_date} onChange={(event) => handleChange("end_date", event.target.value)} />
-        </FormField>
+          <FormField label="Ngày kết thúc">
+            <input className="input" type="date" value={form.end_date} onChange={(event) => handleChange("end_date", event.target.value)} />
+          </FormField>
         </div>
       </section>
 
@@ -194,7 +166,7 @@ export default function ProjectRegistrationForm({
         <div className="section-heading">
           <div>
             <h2 className="section-title">Tệp đính kèm</h2>
-            <p className="section-description">Tải trực tiếp tệp lên hệ thống hoặc dùng liên kết ngoài nếu hồ sơ đang được lưu trên nền tảng khác.</p>
+            <p className="section-description">Tải tệp lên hệ thống hoặc dùng liên kết ngoài nếu hồ sơ được lưu trên nền tảng khác.</p>
           </div>
         </div>
         <div className="form-grid form-grid--2">
