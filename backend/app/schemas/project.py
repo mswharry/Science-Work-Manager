@@ -10,6 +10,7 @@ class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     category_id: int
     level_id: int | None = None
+    registration_period_id: int | None = None
     budget: float | None = None
     start_date: date | None = None
     end_date: date | None = None
@@ -22,6 +23,7 @@ class ProjectUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     category_id: int | None = None
     level_id: int | None = None
+    registration_period_id: int | None = None
     budget: float | None = None
     start_date: date | None = None
     end_date: date | None = None
@@ -32,6 +34,10 @@ class ProjectUpdate(BaseModel):
 
 class ProjectReviewRequest(BaseModel):
     action: Literal["approve", "reject"]
+    note: str | None = None
+
+
+class ProjectSubmitRequest(BaseModel):
     note: str | None = None
 
 
@@ -47,6 +53,8 @@ class ProjectOut(BaseModel):
     leader_id: int
     leader_name: str | None = None
     leader_email: str | None = None
+    registration_period_id: int | None = None
+    registration_period_name: str | None = None
     budget: float | None = None
     start_date: date | None = None
     end_date: date | None = None
@@ -54,6 +62,8 @@ class ProjectOut(BaseModel):
     description: str | None = None
     proposal_file: str | None = None
     final_report_file: str | None = None
+    submitted_at: datetime | None = None
+    canceled_at: datetime | None = None
     review_note: str | None = None
     reviewed_by: int | None = None
     reviewed_by_name: str | None = None

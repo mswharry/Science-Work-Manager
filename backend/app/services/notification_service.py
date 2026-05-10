@@ -17,7 +17,7 @@ def create_notification(db: Session, payload: NotificationCreate, admin_user: Us
     if target_role not in ALLOWED_TARGET_ROLES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="target_role must be one of: all, lecturer, student.",
+            detail="Vai trò người nhận phải là một trong các giá trị: all, lecturer, student.",
         )
 
     notification = Notification(

@@ -1,6 +1,6 @@
 import { ROLES } from "./constants";
 
-const editableStatuses = new Set(["pending", "rejected"]);
+const editableStatuses = new Set(["draft"]);
 
 export function canCreateProject(user) {
   return Boolean(user && user.role === ROLES.LECTURER);
@@ -28,6 +28,26 @@ export function canRequestProjectCompletion(project, user) {
       project.leader_id === user.id &&
       project.status === "approved" &&
       !project.completion_requested,
+  );
+}
+
+export function canSubmitProject(project, user) {
+  return Boolean(
+    user &&
+      project &&
+      user.role === ROLES.LECTURER &&
+      project.leader_id === user.id &&
+      project.status === "draft",
+  );
+}
+
+export function canCancelProject(project, user) {
+  return Boolean(
+    user &&
+      project &&
+      user.role === ROLES.LECTURER &&
+      project.leader_id === user.id &&
+      ["draft", "submitted"].includes(project.status),
   );
 }
 

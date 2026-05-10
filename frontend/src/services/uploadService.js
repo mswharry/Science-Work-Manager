@@ -30,6 +30,16 @@ export async function uploadProjectFinalReport(file) {
   return response.data;
 }
 
+export async function uploadAcademicPlanSheet(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await api.post("/uploads/academic-plan-sheet", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 60000,
+  });
+  return response.data;
+}
+
 export function buildAssetUrl(path) {
   if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;

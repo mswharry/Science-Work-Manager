@@ -13,6 +13,9 @@ class CategoryType(str, Enum):
 
 
 class ProjectStatus(str, Enum):
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    CANCELED = "canceled"
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -25,6 +28,12 @@ class PaperStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class AcademicPlanStatus(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    CLOSED = "closed"
+
+
 class EntityType(str, Enum):
     PROJECT = "project"
     PAPER = "paper"
@@ -33,4 +42,4 @@ class EntityType(str, Enum):
 APPROVABLE_ROLES = {UserRole.STUDENT.value, UserRole.LECTURER.value}
 PROJECT_STATUS_VALUES = {status.value for status in ProjectStatus}
 PAPER_STATUS_VALUES = {status.value for status in PaperStatus}
-
+ACADEMIC_PLAN_STATUS_VALUES = {status.value for status in AcademicPlanStatus}
