@@ -5,6 +5,7 @@ import LoadingState from "../components/common/LoadingState";
 import PageHeader from "../components/common/PageHeader";
 import StatusBadge from "../components/common/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
+import { listApprovalDecisions } from "../services/approvalService";
 import { cancelProject, getProject, submitProject } from "../services/projectService";
 import { getApiErrorMessage } from "../utils/apiError";
 import { buildAssetUrl } from "../services/uploadService";
@@ -13,6 +14,7 @@ import {
   formatDate,
   formatDateTime,
   formatProjectRecordCode,
+  formatLabel,
   resolveProjectCategoryName,
   resolveProjectLeaderName,
 } from "../utils/formatters";
@@ -22,6 +24,7 @@ export default function ProjectRegistrationDetailPage() {
   const { projectId } = useParams();
   const { user } = useAuth();
   const [project, setProject] = useState(null);
+  const [decisions, setDecisions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -33,8 +36,15 @@ export default function ProjectRegistrationDetailPage() {
     setError("");
 
     try {
-      const data = await getProject(projectId);
-      setProject(data);
+      const [projectResult, decisionResult] = await Promise.allSettled([
+        getProject(projectId),
+        listApprovalDecisions(projectId),
+      ]);
+      if (projectResult.status === "rejected") {
+        throw projectResult.reason;
+      }
+      setProject(projectResult.value);
+      setDecisions(decisionResult.status === "fulfilled" ? decisionResult.value : []);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Không thể tải chi tiết hồ sơ."));
     } finally {
@@ -231,6 +241,51 @@ export default function ProjectRegistrationDetailPage() {
         </div>
         <p className="section-description">{project.description || "Chưa có mô tả chi tiết cho đề tài này."}</p>
       </section>
+
+      {project.approval_status ? (
+        <section className="panel stack-md">
+          <div className="section-heading">
+            <div>
+              <h2 className="section-title">Kết quả xét duyệt</h2>
+              <p className="section-description">Theo dõi trạng thái xét duyệt và nộp bản chỉnh sửa nếu được yêu cầu.</p>
+            </div>
+          </div>
+          <div className="key-value-list">
+            <div className="key-value-list__item">
+              <span className="key-value-list__label">Trạng thái xét duyệt</span>
+              <span className="key-value-list__value">{formatLabel(project.approval_status)}</span>
+            </div>
+            {decisions[0] ? (
+              <>
+                <div className="key-value-list__item">
+                  <span className="key-value-list__label">Kết luận</span>
+                  <span className="key-value-list__value">{formatLabel(decisions[0].decision_type)}</span>
+                </div>
+                <div className="key-value-list__item">
+                  <span className="key-value-list__label">Kinh phí duyệt</span>
+                  <span className="key-value-list__value">{formatCurrency(decisions[0].approved_budget)}</span>
+                </div>
+                <div className="key-value-list__item">
+                  <span className="key-value-list__label">Ghi chú quyết định</span>
+                  <span className="key-value-list__value">{decisions[0].note || decisions[0].conditions || "—"}</span>
+                </div>
+              </>
+            ) : null}
+          </div>
+          <div className="button-row">
+            <Link to={`/projects/${project.id}/approval-history`} className="button button--secondary">
+              Lịch sử xét duyệt
+            </Link>
+          </div>
+          {project.approval_status === "revision_requested" && project.approval_round_id ? (
+            <div className="button-row">
+              <Link to={`/revisions/${project.approval_round_id}`} className="button">
+                Nộp bản chỉnh sửa
+              </Link>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

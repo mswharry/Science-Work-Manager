@@ -1,7 +1,11 @@
 import { PROJECT_STATUS_OPTIONS } from "../../utils/constants";
 import FormField from "../common/FormField";
 
-export default function ProjectFilters({ filters, onChange, onSubmit, onReset }) {
+export default function ProjectFilters({ filters, onChange, onSubmit, onReset, hideDraft = false }) {
+  const statusOptions = hideDraft
+    ? PROJECT_STATUS_OPTIONS.filter((option) => option.value !== "draft")
+    : PROJECT_STATUS_OPTIONS;
+
   return (
     <form className="panel filter-panel" onSubmit={onSubmit}>
       <div className="section-heading">
@@ -23,7 +27,7 @@ export default function ProjectFilters({ filters, onChange, onSubmit, onReset })
 
         <FormField label="Trạng thái">
           <select className="input" value={filters.status} onChange={(event) => onChange("status", event.target.value)}>
-            {PROJECT_STATUS_OPTIONS.map((option) => (
+            {statusOptions.map((option) => (
               <option key={option.value || "all"} value={option.value}>
                 {option.label}
               </option>

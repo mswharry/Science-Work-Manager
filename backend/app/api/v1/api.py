@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     academic_plans,
+    approvals,
     auth,
     categories,
     classifications,
@@ -22,6 +23,7 @@ api_router.include_router(categories.router)
 api_router.include_router(classifications.router)
 api_router.include_router(levels.router)
 api_router.include_router(projects.router)
+api_router.include_router(approvals.router)
 api_router.include_router(registration_periods.router)
 api_router.include_router(papers.router)
 api_router.include_router(academic_plans.router)

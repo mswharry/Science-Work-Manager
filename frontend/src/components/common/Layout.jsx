@@ -24,7 +24,7 @@ function SidebarRow({ to, label, description, collapsed, end, icon }) {
 }
 
 export default function Layout() {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isLecturer } = useAuth();
   const { pathname } = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const showSidebar = isAuthenticated && !["/login", "/register"].includes(pathname);
@@ -89,6 +89,17 @@ export default function Layout() {
         description: "Kế hoạch năm học",
         icon: "▣",
       },
+      ...(isLecturer
+        ? [
+            {
+              type: "row",
+              to: "/review-assignments",
+              label: "Phản biện",
+              description: "Phiếu nhận xét đề tài",
+              icon: "✎",
+            },
+          ]
+        : []),
       {
         type: "row",
         to: "/profile",
@@ -98,6 +109,13 @@ export default function Layout() {
       },
       ...(isAdmin
         ? [
+            {
+              type: "row",
+              to: "/approvals",
+              label: "Xét duyệt",
+              description: "Quy trình xét duyệt đề tài",
+              icon: "✓",
+            },
             {
               type: "row",
               to: "/admin",

@@ -1366,7 +1366,8 @@ body {
 
 .metric-strip {
   display: grid;
-  gap: 0;
+  gap: 16px; /* Khoảng cách giữa các ô */
+  margin-bottom: 24px;
 }
 
 .metric-strip--2 {
@@ -1378,7 +1379,34 @@ body {
 }
 
 .metric-strip--4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column; /* Ép các thẻ span, strong xếp dọc xuống */
+  gap: 8px; /* Khoảng cách giữa chữ, số và ghi chú */
+  padding: 16px;
+  background-color: #f9fafb; /* Thêm màu nền nhẹ cho dễ nhìn - tùy chọn */
+  border: 1px solid #e5e7eb; /* Thêm viền - tùy chọn */
+  border-radius: 8px;
+}
+
+.metric-card__label {
+  font-size: 14px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.metric-card__value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metric-card__hint {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .metric-item {
@@ -1647,7 +1675,7 @@ body {
 
 @media (max-width: 1120px) {
   .metric-strip--4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .home-public-grid,
@@ -1658,7 +1686,10 @@ body {
 }
 
 @media (max-width: 760px) {
-  .metric-strip--4,
+  .metric-strip--4{
+    grid-template-columns: 1fr;
+  }
+  
   .metric-strip--3,
   .metric-strip--2 {
     grid-template-columns: 1fr;
@@ -2506,3 +2537,4 @@ body {
     padding-inline: 12px;
   }
 }
+

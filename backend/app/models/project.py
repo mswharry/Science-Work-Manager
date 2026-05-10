@@ -50,3 +50,7 @@ class Project(Base, TimestampMixin):
     members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
     registration_histories = relationship("RegistrationHistory", back_populates="project", cascade="all, delete-orphan")
     execution_histories = relationship("ExecutionHistory", back_populates="project", cascade="all, delete-orphan")
+    review_rounds = relationship("ReviewRound", back_populates="project", cascade="all, delete-orphan")
+    review_assignments = relationship("ReviewAssignment", back_populates="project", cascade="all, delete-orphan")
+    approval_decisions = relationship("ApprovalDecision", back_populates="project", cascade="all, delete-orphan")
+    approval_histories = relationship("ApprovalHistory", back_populates="project", cascade="all, delete-orphan")
