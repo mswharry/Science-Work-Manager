@@ -1,4 +1,7 @@
 import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { listNotifications } from "../../services/notificationService";
 import { useAuth } from "../../contexts/AuthContext";
 import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from "../../utils/constants";
 import { resolveIdentityCode } from "../../utils/formatters";
@@ -10,6 +13,53 @@ function navLinkClass({ isActive }) {
 
 export default function Navbar({ showSidebar = true, sidebarCollapsed = false, onToggleSidebar = () => {} }) {
   const { isAuthenticated, user, logout } = useAuth();
+export default function Navbar() {
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId;
+
+    async function loadNotificationCount() {
+      if (!isAuthenticated) {
+        if (isMounted) {
+          setNotificationCount(0);
+        }
+        return;
+      }
+
+      try {
+        const notifications = await listNotifications();
+        if (isMounted) {
+          setNotificationCount(Array.isArray(notifications) ? notifications.length : 0);
+        }
+      } catch {
+        if (isMounted) {
+          setNotificationCount(0);
+        }
+      }
+    }
+
+    loadNotificationCount();
+
+    if (isAuthenticated) {
+      intervalId = window.setInterval(loadNotificationCount, 60000);
+    }
+
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, [isAuthenticated]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header className="navbar-wrap">
@@ -40,6 +90,38 @@ export default function Navbar({ showSidebar = true, sidebarCollapsed = false, o
             </span>
           </NavLink>
         </div>
+        <div className="nav-main">
+          <div className="nav-links">
+            <NavLink to="/" className={navLinkClass} end>
+              Trang chủ
+            </NavLink>
+            {isAuthenticated ? (
+              <>
+                <NavLink to="/projects" className={navLinkClass}>
+                  Đề tài
+                </NavLink>
+                <NavLink to="/papers" className={navLinkClass}>
+                  Bài báo
+                </NavLink>
+                <NavLink to="/dashboard" className={navLinkClass}>
+                  <span>Bảng điều khiển</span>
+                  {notificationCount > 0 ? (
+                    <span className="nav-link__badge" aria-label={`${notificationCount} thong bao`}>
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                  ) : null}
+                </NavLink>
+                <NavLink to="/profile" className={navLinkClass}>
+                  Tài khoản
+                </NavLink>
+              </>
+            ) : null}
+            {isAdmin ? (
+              <NavLink to="/admin" className={navLinkClass}>
+                Quản trị
+              </NavLink>
+            ) : null}
+          </div>
 
         <div className="nav-actions nav-actions--header">
           <NavLink to="/" className={navLinkClass} end>

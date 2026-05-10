@@ -16,6 +16,7 @@ Phải hỗ trợ các endpoint:
 
 Rule bắt buộc:
 1. Khi tạo project:
+   - chỉ lecturer được tạo
    - leader là current user
    - status mặc định = pending
 2. GET /projects:
