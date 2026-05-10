@@ -156,7 +156,7 @@ Science-Work-Manager/
 ```bash
 cd backend
 py -3.13 -m venv .venv
-.venv\\Scripts\\activate
+source .venv\\Scripts\\activate
 pip install -r requirements.txt
 copy .env.example .env
 python -m app.db.init_db
