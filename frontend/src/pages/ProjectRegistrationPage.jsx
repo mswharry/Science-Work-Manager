@@ -107,7 +107,7 @@ export default function ProjectRegistrationPage() {
       <MetricStrip
         items={[
           { label: "Tổng số hồ sơ", value: summary.total || 0, hint: "Tổng số hồ sơ đang hiển thị trên màn hình này." },
-          { label: "Nháp", value: summary.draft || 0, hint: "Hồ sơ chưa nộp lên hệ thống." },
+          // { label: "Nháp", value: summary.draft || 0, hint: "Hồ sơ chưa nộp lên hệ thống." },
           { label: "Đã nộp", value: summary.submitted || 0, hint: "Hồ sơ đã nộp lên hệ thống." },
           { label: "Đã hủy", value: summary.canceled || 0, hint: "Hồ sơ đã bị hủy bỏ." },
           { label: "Hoàn thành", value: summary.completed || 0, hint: "Hồ sơ đã được đóng và lưu trữ." },
