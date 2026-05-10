@@ -18,13 +18,13 @@ from app.services.upload_service import delete_local_upload
 
 SUPERVISOR_REQUIRED_MESSAGE = "Student paper requires a supervising lecturer."
 SUPERVISOR_INVALID_MESSAGE = "supervisor_lecturer_id must reference an active approved lecturer."
-SUPERVISOR_NOT_FOUND_MESSAGE = "Supervisor lecturer not found."
+SUPERVISOR_NOT_FOUND_MESSAGE = "Không tìm thấy giảng viên hướng dẫn."
 PAPER_CREATE_ADMIN_FORBIDDEN = "Admins are not allowed to create papers."
 
 
 def _validate_paper_status(status_value: str) -> PaperStatus:
     if status_value not in PAPER_STATUS_VALUES:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid paper status.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Trạng thái bài báo không hợp lệ.")
     return PaperStatus(status_value)
 
 
@@ -100,7 +100,7 @@ def _ensure_paper_category(db: Session, category_id: int) -> None:
     if not category or category.type != CategoryType.PAPER_TYPE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="category_id must belong to a paper_type category.",
+            detail="Danh mục bài báo không hợp lệ. Vui lòng chọn một danh mục thuộc nhóm bài báo.",
         )
 
 
@@ -208,7 +208,7 @@ def create_paper(db: Session, payload: PaperCreate, current_user: User) -> Paper
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create paper.") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Không thể tạo bài báo.") from exc
 
     return get_paper_by_id(db=db, paper_id=paper.id)
 
@@ -257,7 +257,7 @@ def list_papers(
 def get_paper_by_id(db: Session, paper_id: int) -> Paper:
     paper = db.scalar(_paper_query().where(Paper.id == paper_id))
     if not paper:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paper not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy bài báo.")
     return _decorate_paper(paper)
 
 
@@ -275,7 +275,7 @@ def _can_view_paper(db: Session, paper: Paper, current_user: User) -> bool:
 def get_paper_detail(db: Session, paper_id: int, current_user: User) -> Paper:
     paper = get_paper_by_id(db, paper_id)
     if not _can_view_paper(db, paper, current_user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to view this paper.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bạn không có quyền xem bài báo này.")
     return paper
 
 
@@ -283,12 +283,12 @@ def get_paper_detail(db: Session, paper_id: int, current_user: User) -> Paper:
 def _ensure_paper_editable(db: Session, paper: Paper, current_user: User) -> None:
     is_author = db.scalar(select(PaperAuthor.id).where(PaperAuthor.paper_id == paper.id, PaperAuthor.user_id == current_user.id))
     if not is_author:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only paper author can modify this paper.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Chỉ tác giả của bài báo mới có quyền chỉnh sửa.")
 
     if paper.status not in {PaperStatus.PENDING, PaperStatus.REJECTED}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Paper can only be modified when status is pending or rejected.",
+            detail="Chỉ có thể chỉnh sửa bài báo khi trạng thái là chờ duyệt hoặc bị từ chối.",
         )
 
 
@@ -336,7 +336,7 @@ def update_paper(db: Session, paper_id: int, payload: PaperUpdate, current_user:
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to update paper.") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Không thể cập nhật bài báo.") from exc
 
     return get_paper_by_id(db=db, paper_id=paper.id)
 
@@ -354,7 +354,7 @@ def delete_paper(db: Session, paper_id: int, current_user: User) -> None:
 def review_paper(db: Session, paper_id: int, payload: PaperReviewRequest, admin_user: User) -> Paper:
     paper = get_paper_by_id(db, paper_id)
     if paper.status != PaperStatus.PENDING:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending papers can be reviewed.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chỉ có thể duyệt các bài báo đang chờ duyệt.")
 
     action = payload.action.lower().strip()
     if action == "approve":
@@ -362,7 +362,7 @@ def review_paper(db: Session, paper_id: int, payload: PaperReviewRequest, admin_
     elif action == "reject":
         paper.status = PaperStatus.REJECTED
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Action must be approve or reject.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Hành động không hợp lệ. Vui lòng chọn phê duyệt hoặc từ chối.")
 
     paper.review_note = payload.note
     paper.reviewed_by = admin_user.id
@@ -385,18 +385,18 @@ def add_paper_author(db: Session, paper_id: int, payload: AddAuthorRequest, curr
     if current_user.role != UserRole.ADMIN and not owner_is_current_user:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only paper creator or admin can add authors.",
+            detail="Chỉ người tạo bài báo hoặc quản trị viên mới có thể thêm đồng tác giả.",
         )
 
     user_exists = db.get(User, payload.user_id)
     if not user_exists:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author user not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy người dùng cần thêm làm đồng tác giả.")
 
     duplicate = db.scalar(
         select(PaperAuthor.id).where(PaperAuthor.paper_id == paper.id, PaperAuthor.user_id == payload.user_id)
     )
     if duplicate:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This user is already an author of the paper.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Người dùng này đã là tác giả của bài báo.")
 
     db.add(
         PaperAuthor(
@@ -411,4 +411,4 @@ def add_paper_author(db: Session, paper_id: int, payload: AddAuthorRequest, curr
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to add paper author.") from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Không thể thêm đồng tác giả vào bài báo.") from exc

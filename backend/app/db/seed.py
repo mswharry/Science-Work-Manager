@@ -1,12 +1,17 @@
+from datetime import date, datetime, timezone
+
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.core.constants import CategoryType, EntityType, UserRole
+from app.core.constants import CategoryType, EntityType, ProjectStatus, UserRole
 from app.core.database import SessionLocal
 from app.core.security import get_password_hash
 from app.models.category import Category
 from app.models.classification import PaperClassificationGroup, PaperClassificationOption
 from app.models.level import Level
+from app.models.project import Project
+from app.models.project_history import RegistrationHistory
+from app.models.registration_period import RegistrationPeriod
 from app.models.user import User
 
 
@@ -251,11 +256,235 @@ def seed_paper_classifications() -> None:
         db.commit()
 
 
+def seed_registration_periods() -> None:
+    with SessionLocal() as db:
+        exists = db.scalar(select(RegistrationPeriod))
+        if not exists:
+            db.add(
+                RegistrationPeriod(
+                    title="Đợt đăng ký đề tài học kỳ hiện tại",
+                    description="Đợt đăng ký dành cho giảng viên tạo hồ sơ đề tài nghiên cứu khoa học.",
+                    requirements="Giảng viên đã đăng nhập, hồ sơ cần có đầy đủ thông tin và file đính kèm.",
+                    is_open=True,
+                )
+            )
+            db.commit()
+
+def seed_demo_lecturers() -> None:
+    lecturers = [
+        {"email": "gv.anhtm@ptit.edu.vn", "full_name": "Tran Minh Anh", "staff_id": "GV001", "department": "An toan thong tin"},
+        {"email": "gv.hoangnt@ptit.edu.vn", "full_name": "Nguyen Thu Hoang", "staff_id": "GV002", "department": "Mang va he thong"},
+        {"email": "gv.lientt@ptit.edu.vn", "full_name": "Le Thi Lien", "staff_id": "GV003", "department": "Ky thuat phan mem"},
+        {"email": "gv.minhpd@ptit.edu.vn", "full_name": "Pham Duc Minh", "staff_id": "GV004", "department": "Khoa hoc du lieu"},
+        {"email": "gv.quanvh@ptit.edu.vn", "full_name": "Vo Hoang Quan", "staff_id": "GV005", "department": "An toan mang"},
+        {"email": "gv.thaont@ptit.edu.vn", "full_name": "Nguyen Thi Thao", "staff_id": "GV006", "department": "Tri tue nhan tao"},
+        {"email": "gv.ducnk@ptit.edu.vn", "full_name": "Nguyen Khanh Duc", "staff_id": "GV007", "department": "He thong thong tin"},
+        {"email": "gv.huonglt@ptit.edu.vn", "full_name": "Le Thu Huong", "staff_id": "GV008", "department": "Cong nghe phan mem"},
+    ]
+
+    with SessionLocal() as db:
+        for lecturer in lecturers:
+            exists = db.scalar(select(User).where(User.email == lecturer["email"]))
+            if exists:
+                continue
+
+            db.add(
+                User(
+                    email=lecturer["email"],
+                    hashed_password=get_password_hash("Lecturer@123456"),
+                    full_name=lecturer["full_name"],
+                    role=UserRole.LECTURER,
+                    is_active=True,
+                    is_approved=True,
+                    staff_id=lecturer["staff_id"],
+                    department=lecturer["department"],
+                )
+            )
+
+        db.commit()
+
+
+def seed_sample_project_dossiers() -> None:
+    with SessionLocal() as db:
+        period = db.scalar(select(RegistrationPeriod).where(RegistrationPeriod.title == "Dot dang ky de tai mau 2026"))
+        if not period:
+            period = RegistrationPeriod(
+                title="Dot dang ky de tai mau 2026",
+                registration_start=date(2026, 5, 1),
+                registration_end=date(2026, 6, 15),
+                description="Dot dang ky mau phuc vu demo du lieu de tai.",
+                requirements="Giang vien lap ho so voi ten de tai, danh muc, muc cap va tep de cuong.",
+                is_open=True,
+            )
+            db.add(period)
+            db.commit()
+            period = db.scalar(select(RegistrationPeriod).where(RegistrationPeriod.title == "Dot dang ky de tai mau 2026"))
+
+        project_categories = {
+            "research": db.scalar(
+                select(Category).where(Category.type == CategoryType.PROJECT_TYPE, Category.name == "Research Topic")
+            ),
+            "product": db.scalar(
+                select(Category).where(Category.type == CategoryType.PROJECT_TYPE, Category.name == "Security Product")
+            ),
+        }
+        levels = {
+            "khoa": db.scalar(select(Level).where(Level.code == "cap_khoa")),
+            "truong": db.scalar(select(Level).where(Level.code == "cap_truong")),
+            "bo": db.scalar(select(Level).where(Level.code == "cap_bo")),
+            "nha_nuoc": db.scalar(select(Level).where(Level.code == "cap_nha_nuoc")),
+        }
+        lecturers = list(
+            db.scalars(
+                select(User)
+                .where(User.role == UserRole.LECTURER, User.is_active.is_(True), User.is_approved.is_(True))
+                .order_by(User.id.asc())
+            )
+        )
+
+        samples = [
+            {
+                "name": "He thong phat hien phishing da ngon ngu",
+                "code": "DT-2026-001",
+                "category": "research",
+                "level": "khoa",
+                "leader_index": 0,
+                "budget": 120000000,
+                "start_date": date(2026, 5, 10),
+                "end_date": date(2026, 11, 30),
+                "description": "Xay dung mo hinh nhan dien email va website phishing su dung NLP va machine learning.",
+            },
+            {
+                "name": "Nen tang canh bao ro ri du lieu noi bo",
+                "code": "DT-2026-002",
+                "category": "product",
+                "level": "truong",
+                "leader_index": 1,
+                "budget": 150000000,
+                "start_date": date(2026, 5, 15),
+                "end_date": date(2027, 1, 15),
+                "description": "Xay dung dashboard phat hien ro ri du lieu va goi y canh bao theo muc do uu tien.",
+            },
+            {
+                "name": "Kiem thu tu dong API cho dich vu web hoc tap",
+                "code": "DT-2026-003",
+                "category": "research",
+                "level": "bo",
+                "leader_index": 2,
+                "budget": 180000000,
+                "start_date": date(2026, 5, 20),
+                "end_date": date(2027, 2, 28),
+                "description": "Bo cong cu sinh test case va stress test cho cac API noi bo cua he thong.",
+            },
+            {
+                "name": "Mo hinh phat hien bat thuong dang nhap",
+                "code": "DT-2026-004",
+                "category": "research",
+                "level": "khoa",
+                "leader_index": 3,
+                "budget": 110000000,
+                "start_date": date(2026, 5, 18),
+                "end_date": date(2026, 12, 20),
+                "description": "Phan tich hanh vi dang nhap de phat hien truy cap bat thuong tren tai khoan hoc vu.",
+            },
+            {
+                "name": "Cong cu danh gia an toan cau hinh may chu",
+                "code": "DT-2026-005",
+                "category": "product",
+                "level": "truong",
+                "leader_index": 4,
+                "budget": 200000000,
+                "start_date": date(2026, 6, 1),
+                "end_date": date(2027, 3, 31),
+                "description": "Xay dung tien ich kiem tra cau hinh server, port mo va chinh sach mat khau.",
+            },
+            {
+                "name": "Phat hien gian lan trong bai nop sinh vien",
+                "code": "DT-2026-006",
+                "category": "research",
+                "level": "bo",
+                "leader_index": 5,
+                "budget": 175000000,
+                "start_date": date(2026, 5, 22),
+                "end_date": date(2027, 1, 30),
+                "description": "So sanh van ban va mau cau truc de phat hien bai nop co dau hieu sao chep.",
+            },
+            {
+                "name": "He thong quan ly minh chung nghien cuu so",
+                "code": "DT-2026-007",
+                "category": "product",
+                "level": "nha_nuoc",
+                "leader_index": 6,
+                "budget": 250000000,
+                "start_date": date(2026, 6, 5),
+                "end_date": date(2027, 5, 31),
+                "description": "Phat trien kho luu tru va truy vet minh chung nghien cuu cho cap khoa.",
+            },
+            {
+                "name": "Ung dung theo doi tien do de tai theo tuan",
+                "code": "DT-2026-008",
+                "category": "research",
+                "level": "khoa",
+                "leader_index": 7,
+                "budget": 98000000,
+                "start_date": date(2026, 5, 25),
+                "end_date": date(2026, 12, 15),
+                "description": "Bang dieu khien theo doi tien do, de xuat canh bao va nhac viec cho nhom nghien cuu.",
+            },
+        ]
+
+        for sample in samples:
+            if db.scalar(select(Project).where(Project.code == sample["code"])) or db.scalar(
+                select(Project).where(Project.name == sample["name"])
+            ):
+                continue
+
+            leader = lecturers[sample["leader_index"] % len(lecturers)] if lecturers else None
+            category = project_categories[sample["category"]]
+            level = levels[sample["level"]]
+            if not leader or not category or not level:
+                continue
+
+            project = Project(
+                name=sample["name"],
+                code=sample["code"],
+                category_id=category.id,
+                level_id=level.id,
+                leader_id=leader.id,
+                registration_period_id=period.id,
+                budget=sample["budget"],
+                start_date=sample["start_date"],
+                end_date=sample["end_date"],
+                status=ProjectStatus.PENDING,
+                description=sample["description"],
+                proposal_file=f"/uploads/projects/proposals/{sample['code'].lower()}.txt",
+                final_report_file=None,
+                submitted_at=datetime(2026, 5, 10, 9, 0, tzinfo=timezone.utc),
+            )
+            db.add(project)
+            db.flush()
+            db.add(
+                RegistrationHistory(
+                    project_id=project.id,
+                    action="create",
+                    previous_status=None,
+                    new_status=ProjectStatus.PENDING.value,
+                    detail="Ho so mau duoc tao de phuc vu demo du lieu.",
+                    performed_by=leader.id,
+                )
+            )
+
+        db.commit()
+
+
 def run_seed() -> None:
     seed_admin()
     seed_categories()
     seed_levels()
     seed_paper_classifications()
+    seed_registration_periods()
+    seed_demo_lecturers()
+    seed_sample_project_dossiers()
 
 
 if __name__ == "__main__":

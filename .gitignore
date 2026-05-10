@@ -10,6 +10,8 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
+frontend/.npm-cache/
+
 # Env / secrets
 .env
 backend/.env
@@ -17,6 +19,7 @@ frontend/.env
 
 # Database
 backend/science_work_manager.db
+*.db
 
 # OS / Editor
 .DS_Store
@@ -24,4 +27,5 @@ Thumbs.db
 .vscode/
 .idea/.venv/
 __pycache__/
+.idea/__pycache__/
 *.pyc

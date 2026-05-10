@@ -52,18 +52,17 @@ export default function LoginPage() {
           <h2 className="section-title">Lưu ý truy cập</h2>
           <ul className="simple-list">
             <li>Tài khoản giảng viên chỉ đăng nhập được sau khi được quản trị viên phê duyệt.</li>
-            <li>Nếu phiên làm việc hết hạn, hệ thống sẽ yêu cầu đăng nhập lại.</li>
             <li>Sau khi đăng nhập, giao diện sẽ hiển thị chức năng tương ứng với vai trò của bạn.</li>
           </ul>
         </div>
 
-        <div className="auth-info-block">
+        {/* <div className="auth-info-block">
           <h2 className="section-title">Chưa có tài khoản?</h2>
           <p className="section-description">Bạn có thể đăng ký tài khoản mới nếu là sinh viên hoặc giảng viên chưa có tài khoản trong hệ thống.</p>
           <Link to="/register" className="button button--secondary nav-button-link">
             Đi tới trang đăng ký
           </Link>
-        </div>
+        </div> */}
       </section>
 
       <form className="panel auth-form" onSubmit={handleSubmit}>
@@ -109,9 +108,9 @@ export default function LoginPage() {
           <button type="submit" className="button" disabled={submitting}>
             {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
-          <Link to="/register" className="button button--secondary nav-button-link">
+          {/* <Link to="/register" className="button button--secondary nav-button-link">
             Tạo tài khoản mới
-          </Link>
+          </Link> */}
         </div>
       </form>
     </div>

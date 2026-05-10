@@ -14,24 +14,24 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
     if payload.role not in {UserRole.STUDENT.value, UserRole.LECTURER.value}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Public register only supports student or lecturer role.",
+            detail="Chức năng đăng ký công khai chỉ hỗ trợ vai trò sinh viên hoặc giảng viên.",
         )
 
     if payload.role == UserRole.STUDENT.value and not payload.student_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="student_id is required for student registration.",
+            detail="Vui lòng nhập mã sinh viên.",
         )
 
     if payload.role == UserRole.LECTURER.value and not payload.staff_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="staff_id is required for lecturer registration.",
+            detail="Vui lòng nhập mã cán bộ.",
         )
 
     existing_user = db.scalar(select(User).where(User.email == payload.email))
     if existing_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email này đã tồn tại trong hệ thống.")
 
     is_approved = payload.role == UserRole.STUDENT.value
     new_user = User(
@@ -53,7 +53,7 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Duplicate student_id, staff_id, or email.",
+            detail="Email, mã sinh viên hoặc mã cán bộ đã bị trùng.",
         ) from exc
 
     db.refresh(new_user)
@@ -63,15 +63,15 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
 def authenticate_user(db: Session, payload: LoginRequest) -> User:
     user = db.scalar(select(User).where(User.email == payload.email))
     if not user or not verify_password(payload.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email hoặc mật khẩu không đúng.")
 
     if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Your account is blocked.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tài khoản của bạn đã bị khóa.")
 
     if user.role == UserRole.LECTURER and not user.is_approved:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Lecturer account is waiting for admin approval.",
+            detail="Tài khoản giảng viên đang chờ quản trị viên phê duyệt.",
         )
 
     return user

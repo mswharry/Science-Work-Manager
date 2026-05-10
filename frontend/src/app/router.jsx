@@ -5,12 +5,15 @@ import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ProfilePage from "../pages/ProfilePage";
-import ProjectsPage from "../pages/ProjectsPage";
-import ProjectDetailPage from "../pages/ProjectDetailPage";
-import ProjectFormPage from "../pages/ProjectFormPage";
+import ProjectRegistrationPage from "../pages/ProjectRegistrationPage";
+import ProjectRegistrationDetailPage from "../pages/ProjectRegistrationDetailPage";
+import ProjectRegistrationFormPage from "../pages/ProjectRegistrationFormPage";
+import ProjectRegistrationHistoryPage from "../pages/ProjectRegistrationHistoryPage";
+import RegistrationPeriodsPage from "../pages/RegistrationPeriodsPage";
 import PapersPage from "../pages/PapersPage";
 import PaperDetailPage from "../pages/PaperDetailPage";
 import PaperFormPage from "../pages/PaperFormPage";
+import AcademicPlansPage from "../pages/AcademicPlansPage";
 import AdminPage from "../pages/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -28,18 +31,21 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "profile", element: <ProfilePage /> },
-          { path: "projects", element: <ProjectsPage /> },
-          { path: "projects/:projectId", element: <ProjectDetailPage /> },
-          { path: "projects/:projectId/edit", element: <ProjectFormPage mode="edit" /> },
+          { path: "projects", element: <ProjectRegistrationPage /> },
+          { path: "registration-periods", element: <RegistrationPeriodsPage /> },
+          { path: "projects/:projectId", element: <ProjectRegistrationDetailPage /> },
+          { path: "projects/:projectId/history", element: <ProjectRegistrationHistoryPage /> },
+          { path: "projects/:projectId/edit", element: <ProjectRegistrationFormPage mode="edit" /> },
           { path: "papers", element: <PapersPage /> },
           { path: "papers/:paperId", element: <PaperDetailPage /> },
           { path: "papers/:paperId/edit", element: <PaperFormPage mode="edit" /> },
+          { path: "plans", element: <AcademicPlansPage /> },
           { path: "dashboard", element: <DashboardPage /> },
         ],
       },
       {
         element: <ProtectedRoute roles={[ROLES.LECTURER]} />,
-        children: [{ path: "projects/new", element: <ProjectFormPage mode="create" /> }],
+        children: [{ path: "registration-periods/:periodId/create", element: <ProjectRegistrationFormPage mode="create" /> }],
       },
       {
         element: <ProtectedRoute roles={[ROLES.LECTURER, ROLES.STUDENT]} />,

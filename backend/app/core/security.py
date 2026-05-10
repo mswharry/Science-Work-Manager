@@ -30,6 +30,6 @@ def decode_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError as exc:
-        raise ValueError("Invalid token") from exc
+        raise ValueError("Token không hợp lệ") from exc
 
 

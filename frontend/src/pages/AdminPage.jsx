@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import CategoryManager from "../components/admin/CategoryManager";
 import LevelManager from "../components/admin/LevelManager";
+import RegistrationPeriodManager from "../components/admin/RegistrationPeriodManager";
 import NotificationComposer from "../components/admin/NotificationComposer";
 import NotificationFeed from "../components/admin/NotificationFeed";
 import ReviewQueuePanel from "../components/admin/ReviewQueuePanel";
@@ -18,11 +20,13 @@ const tabs = [
   { key: "papers", label: "Duyệt bài báo" },
   { key: "categories", label: "Danh mục" },
   { key: "levels", label: "Phân cấp" },
+  { key: "registration-periods", label: "Đợt đăng ký" },
   { key: "notifications", label: "Thông báo" },
 ];
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState("users");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => location.state?.activeTab || "users");
   const [pendingProjects, setPendingProjects] = useState([]);
   const [completionRequests, setCompletionRequests] = useState([]);
   const [pendingPapers, setPendingPapers] = useState([]);
@@ -264,6 +268,8 @@ export default function AdminPage() {
       {activeTab === "categories" ? <CategoryManager /> : null}
 
       {activeTab === "levels" ? <LevelManager /> : null}
+
+      {activeTab === "registration-periods" ? <RegistrationPeriodManager /> : null}
 
       {activeTab === "notifications" ? (
         <div className="grid grid--2">

@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHeader";
 import StatusBadge from "../components/common/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
+import { changePasswordApi } from "../services/authService";
+import { getApiErrorMessage } from "../utils/apiError";
 
 const roleGuides = {
   admin: [
@@ -24,6 +27,14 @@ export default function ProfilePage() {
   const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState("");
   const [messageKind, setMessageKind] = useState("info");
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState("");
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -38,6 +49,36 @@ export default function ProfilePage() {
       setMessage("Không thể làm mới thông tin tài khoản ở thời điểm hiện tại.");
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handlePasswordChange = (field, value) => {
+    setPasswordForm((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+    setPasswordSubmitting(true);
+
+    try {
+      const payload = {
+        current_password: passwordForm.current_password,
+        new_password: passwordForm.new_password,
+        confirm_password: passwordForm.confirm_password,
+      };
+      const result = await changePasswordApi(payload);
+      setPasswordSuccess(result.message || "Đổi mật khẩu thành công.");
+      setPasswordForm({
+        current_password: "",
+        new_password: "",
+        confirm_password: "",
+      });
+    } catch (requestError) {
+      setPasswordError(getApiErrorMessage(requestError, "Không thể đổi mật khẩu vào lúc này."));
+    } finally {
+      setPasswordSubmitting(false);
     }
   };
 
@@ -137,6 +178,62 @@ export default function ProfilePage() {
             ) : null}
           </div>
         </div>
+      </section>
+
+      <section className="panel stack-lg">
+        <div>
+          <h2 className="section-title">Đổi mật khẩu</h2>
+          <p className="section-description">Cập nhật mật khẩu để tăng bảo mật cho tài khoản của bạn.</p>
+        </div>
+
+        <form className="stack-md" onSubmit={handlePasswordSubmit}>
+          <div className="overview-columns">
+            <FormField label="Mật khẩu hiện tại" required>
+              <input
+                className="input"
+                type="password"
+                autoComplete="current-password"
+                value={passwordForm.current_password}
+                onChange={(event) => handlePasswordChange("current_password", event.target.value)}
+                placeholder="Nhập mật khẩu hiện tại"
+                required
+              />
+            </FormField>
+
+            <FormField label="Mật khẩu mới" required>
+              <input
+                className="input"
+                type="password"
+                autoComplete="new-password"
+                value={passwordForm.new_password}
+                onChange={(event) => handlePasswordChange("new_password", event.target.value)}
+                placeholder="Nhập mật khẩu mới"
+                required
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Xác nhận mật khẩu mới" required hint="Hai ô mật khẩu mới phải giống nhau.">
+            <input
+              className="input"
+              type="password"
+              autoComplete="new-password"
+              value={passwordForm.confirm_password}
+              onChange={(event) => handlePasswordChange("confirm_password", event.target.value)}
+              placeholder="Nhập lại mật khẩu mới"
+              required
+            />
+          </FormField>
+
+          {passwordError ? <div className="notice notice--danger">{passwordError}</div> : null}
+          {passwordSuccess ? <div className="notice notice--success">{passwordSuccess}</div> : null}
+
+          <div className="button-row">
+            <button type="submit" className="button" disabled={passwordSubmitting}>
+              {passwordSubmitting ? "Đang đổi mật khẩu..." : "Đổi mật khẩu"}
+            </button>
+          </div>
+        </form>
       </section>
 
       <section className="panel overview-columns">

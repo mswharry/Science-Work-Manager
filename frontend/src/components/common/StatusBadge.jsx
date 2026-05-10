@@ -1,10 +1,14 @@
 import { formatLabel } from "../../utils/formatters";
 
 const toneMap = {
+  draft: "neutral",
+  submitted: "submitted",
+  canceled: "danger",
   pending: "warning",
   approved: "success",
   rejected: "danger",
   completed: "info",
+  closed: "danger",
   admin: "neutral",
   lecturer: "info",
   student: "secondary",

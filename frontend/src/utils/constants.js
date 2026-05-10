@@ -18,6 +18,9 @@ export const ROLE_OPTIONS = [
 
 export const PROJECT_STATUS_OPTIONS = [
   { value: "", label: "Tất cả trạng thái" },
+  { value: "draft", label: "Nháp" },
+  { value: "submitted", label: "Đã nộp" },
+  { value: "canceled", label: "Đã hủy" },
   { value: "pending", label: "Chờ duyệt" },
   { value: "approved", label: "Đã duyệt" },
   { value: "rejected", label: "Từ chối" },
@@ -29,6 +32,12 @@ export const PAPER_STATUS_OPTIONS = [
   { value: "pending", label: "Chờ duyệt" },
   { value: "approved", label: "Đã duyệt" },
   { value: "rejected", label: "Từ chối" },
+];
+
+export const PLAN_STATUS_OPTIONS = [
+  { value: "draft", label: "Bản nháp" },
+  { value: "active", label: "Đang áp dụng" },
+  { value: "closed", label: "Đã đóng" },
 ];
 
 export const TARGET_ROLE_OPTIONS = [
@@ -44,15 +53,26 @@ export const ROLE_LABELS = {
 };
 
 export const STATUS_LABELS = {
+  draft: "Nháp",
+  submitted: "Đã nộp",
+  canceled: "Đã hủy",
   pending: "Chờ duyệt",
   approved: "Đã duyệt",
   rejected: "Từ chối",
   completed: "Hoàn thành",
+  draft: "Bản nháp",
+  active: "Đang áp dụng",
+  closed: "Đã đóng",
   all: "Toàn bộ người dùng",
-  active: "Đang hoạt động",
   inactive: "Đã khóa",
   true: "Có",
   false: "Không",
+};
+
+export const PLAN_STATUS_LABELS = {
+  draft: "Bản nháp",
+  active: "Đang áp dụng",
+  closed: "Đã đóng",
 };
 
 export const TARGET_ROLE_LABELS = {

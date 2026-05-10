@@ -34,6 +34,7 @@ Ví dụ luồng duyệt đề tài:
 - Đăng ký (`/auth/register`) cho `student`, `lecturer`.
 - Đăng nhập (`/auth/login`) dùng JWT Bearer token.
 - Lấy thông tin người dùng hiện tại (`/users/me`).
+- Đổi mật khẩu cho người dùng đang đăng nhập (`/users/me/password`).
 - Rule hiện tại:
 	- Sinh viên đăng ký xong có thể hoạt động ngay (`is_approved=true`).
 	- Giảng viên cần admin duyệt trước khi đăng nhập đầy đủ.
