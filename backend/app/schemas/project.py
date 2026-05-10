@@ -53,6 +53,7 @@ class ProjectOut(BaseModel):
     leader_id: int
     leader_name: str | None = None
     leader_email: str | None = None
+    leader_department: str | None = None
     registration_period_id: int | None = None
     registration_period_name: str | None = None
     budget: float | None = None
@@ -72,6 +73,8 @@ class ProjectOut(BaseModel):
     completion_requested_at: datetime | None = None
     completion_requested_by: int | None = None
     completion_requested_by_name: str | None = None
+    approval_status: str | None = None
+    approval_round_id: int | None = None
     created_at: datetime
     updated_at: datetime
 

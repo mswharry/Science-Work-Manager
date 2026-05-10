@@ -15,6 +15,7 @@ from app.models.registration_period import RegistrationPeriod
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectReviewRequest, ProjectSubmitRequest, ProjectUpdate
 from app.services.registration_period_service import get_registration_period
+from app.services.review_round_service import create_initial_round, get_current_round
 from app.services.upload_service import delete_local_upload
 
 
@@ -65,6 +66,7 @@ def _decorate_project(project: Project) -> Project:
     project.level_code = project.level.code if project.level else None
     project.leader_name = project.leader.full_name if project.leader else None
     project.leader_email = project.leader.email if project.leader else None
+    project.leader_department = project.leader.department if project.leader else None
     project.registration_period_name = project.registration_period.title if project.registration_period else None
     project.reviewed_by_name = project.reviewer.full_name if project.reviewer else None
     project.completion_requested_by_name = project.completion_requester.full_name if project.completion_requester else None
@@ -257,7 +259,9 @@ def list_projects(
     if current_user.role not in {UserRole.ADMIN, UserRole.LECTURER}:
         return []
 
-    if not is_admin:
+    if is_admin:
+        stmt = stmt.where(Project.status != ProjectStatus.DRAFT)
+    else:
         stmt = stmt.where(Project.leader_id == current_user.id)
 
     if status_filter:
@@ -277,7 +281,16 @@ def list_projects(
         stmt = stmt.where(Project.completion_requested == completion_requested)
 
     projects = list(db.scalars(stmt).unique())
-    return _decorate_projects(projects)
+    projects = _decorate_projects(projects)
+    for project in projects:
+        try:
+            round_item = get_current_round(db=db, project_id=project.id)
+            project.approval_status = round_item.status.value
+            project.approval_round_id = round_item.id
+        except HTTPException:
+            project.approval_status = None
+            project.approval_round_id = None
+    return projects
 
 
 
@@ -285,14 +298,22 @@ def get_project_by_id(db: Session, project_id: int) -> Project:
     project = db.scalar(_project_query().where(Project.id == project_id))
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy hồ sơ đề tài.")
-    return _decorate_project(project)
+    project = _decorate_project(project)
+    try:
+        round_item = get_current_round(db=db, project_id=project.id)
+        project.approval_status = round_item.status.value
+        project.approval_round_id = round_item.id
+    except HTTPException:
+        project.approval_status = None
+        project.approval_round_id = None
+    return project
 
 
 
 def _can_view_project(project: Project, current_user: User, db: Session) -> bool:
     if current_user.role == UserRole.LECTURER and project.leader_id == current_user.id:
         return True
-    if current_user.role == UserRole.ADMIN and project.status in {ProjectStatus.APPROVED, ProjectStatus.COMPLETED}:
+    if current_user.role == UserRole.ADMIN and project.status != ProjectStatus.DRAFT:
         return True
     return False
 
@@ -411,6 +432,7 @@ def submit_project(db: Session, project_id: int, current_user: User, payload: Pr
 
     project.status = ProjectStatus.SUBMITTED
     project.submitted_at = datetime.now(timezone.utc)
+    create_initial_round(db=db, project_id=project.id, created_by=None)
     _record_registration_history(
         db=db,
         project=project,

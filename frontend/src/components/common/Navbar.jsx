@@ -1,4 +1,3 @@
-import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { listNotifications } from "../../services/notificationService";
@@ -11,9 +10,11 @@ function navLinkClass({ isActive }) {
   return `nav-link${isActive ? " nav-link--active" : ""}`;
 }
 
-export default function Navbar({ showSidebar = true, sidebarCollapsed = false, onToggleSidebar = () => {} }) {
-  const { isAuthenticated, user, logout } = useAuth();
-export default function Navbar() {
+export default function Navbar({
+  showSidebar = true,
+  sidebarCollapsed = false,
+  onToggleSidebar = () => {},
+}) {
   const { isAuthenticated, isAdmin, user, logout } = useAuth();
   const navigate = useNavigate();
   const [notificationCount, setNotificationCount] = useState(0);
@@ -90,38 +91,6 @@ export default function Navbar() {
             </span>
           </NavLink>
         </div>
-        <div className="nav-main">
-          <div className="nav-links">
-            <NavLink to="/" className={navLinkClass} end>
-              Trang chủ
-            </NavLink>
-            {isAuthenticated ? (
-              <>
-                <NavLink to="/projects" className={navLinkClass}>
-                  Đề tài
-                </NavLink>
-                <NavLink to="/papers" className={navLinkClass}>
-                  Bài báo
-                </NavLink>
-                <NavLink to="/dashboard" className={navLinkClass}>
-                  <span>Bảng điều khiển</span>
-                  {notificationCount > 0 ? (
-                    <span className="nav-link__badge" aria-label={`${notificationCount} thong bao`}>
-                      {notificationCount > 99 ? "99+" : notificationCount}
-                    </span>
-                  ) : null}
-                </NavLink>
-                <NavLink to="/profile" className={navLinkClass}>
-                  Tài khoản
-                </NavLink>
-              </>
-            ) : null}
-            {isAdmin ? (
-              <NavLink to="/admin" className={navLinkClass}>
-                Quản trị
-              </NavLink>
-            ) : null}
-          </div>
 
         <div className="nav-actions nav-actions--header">
           <NavLink to="/" className={navLinkClass} end>
@@ -136,10 +105,12 @@ export default function Navbar() {
                 </div>
                 <div className="nav-user__role">
                   <StatusBadge value={user?.role} kind="role" />
-                  <span className="nav-user__code">Mã: {resolveIdentityCode(user?.staff_id, user?.student_id)}</span>
+                  <span className="nav-user__code">
+                    Mã: {resolveIdentityCode(user?.staff_id, user?.student_id)}
+                  </span>
                 </div>
               </div>
-              <button type="button" className="button button--ghost" onClick={logout}>
+              <button type="button" className="button button--ghost" onClick={handleLogout}>
                 Đăng xuất
               </button>
             </>
@@ -148,9 +119,6 @@ export default function Navbar() {
               <NavLink to="/login" className="button button--secondary nav-button-link">
                 Đăng nhập
               </NavLink>
-              {/* <NavLink to="/register" className="button nav-button-link">
-                Đăng ký
-              </NavLink> */}
             </>
           )}
         </div>

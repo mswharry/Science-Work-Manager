@@ -9,6 +9,15 @@ import ProjectRegistrationPage from "../pages/ProjectRegistrationPage";
 import ProjectRegistrationDetailPage from "../pages/ProjectRegistrationDetailPage";
 import ProjectRegistrationFormPage from "../pages/ProjectRegistrationFormPage";
 import ProjectRegistrationHistoryPage from "../pages/ProjectRegistrationHistoryPage";
+import ApprovalListPage from "../pages/ApprovalListPage";
+import ApprovalDetailPage from "../pages/ApprovalDetailPage";
+import AssignReviewerFormPage from "../pages/AssignReviewerFormPage";
+import ApprovalDecisionFormPage from "../pages/ApprovalDecisionFormPage";
+import RevisionRequestFormPage from "../pages/RevisionRequestFormPage";
+import ApprovalHistoryPage from "../pages/ApprovalHistoryPage";
+import ReviewFeedbackListPage from "../pages/ReviewFeedbackListPage";
+import ReviewFeedbackFormPage from "../pages/ReviewFeedbackFormPage";
+import RevisionSubmissionPage from "../pages/RevisionSubmissionPage";
 import RegistrationPeriodsPage from "../pages/RegistrationPeriodsPage";
 import PapersPage from "../pages/PapersPage";
 import PaperDetailPage from "../pages/PaperDetailPage";
@@ -34,6 +43,7 @@ const router = createBrowserRouter([
           { path: "projects", element: <ProjectRegistrationPage /> },
           { path: "registration-periods", element: <RegistrationPeriodsPage /> },
           { path: "projects/:projectId", element: <ProjectRegistrationDetailPage /> },
+          { path: "projects/:projectId/approval-history", element: <ApprovalHistoryPage /> },
           { path: "projects/:projectId/history", element: <ProjectRegistrationHistoryPage /> },
           { path: "projects/:projectId/edit", element: <ProjectRegistrationFormPage mode="edit" /> },
           { path: "papers", element: <PapersPage /> },
@@ -48,12 +58,28 @@ const router = createBrowserRouter([
         children: [{ path: "registration-periods/:periodId/create", element: <ProjectRegistrationFormPage mode="create" /> }],
       },
       {
+        element: <ProtectedRoute roles={[ROLES.LECTURER]} />,
+        children: [
+          { path: "review-assignments", element: <ReviewFeedbackListPage /> },
+          { path: "review-assignments/:assignmentId", element: <ReviewFeedbackFormPage /> },
+          { path: "revisions/:roundId", element: <RevisionSubmissionPage /> },
+        ],
+      },
+      {
         element: <ProtectedRoute roles={[ROLES.LECTURER, ROLES.STUDENT]} />,
         children: [{ path: "papers/new", element: <PaperFormPage mode="create" /> }],
       },
       {
         element: <ProtectedRoute roles={[ROLES.ADMIN]} />,
-        children: [{ path: "admin", element: <AdminPage /> }],
+        children: [
+          { path: "admin", element: <AdminPage /> },
+          { path: "approvals", element: <ApprovalListPage /> },
+          { path: "approvals/:projectId", element: <ApprovalDetailPage /> },
+          { path: "approvals/:projectId/assign", element: <AssignReviewerFormPage /> },
+          { path: "approvals/:projectId/decision", element: <ApprovalDecisionFormPage /> },
+          { path: "approvals/:projectId/revision-request", element: <RevisionRequestFormPage /> },
+          { path: "approvals/:projectId/history", element: <ApprovalHistoryPage /> },
+        ],
       },
       { path: "*", element: <NotFoundPage /> },
     ],

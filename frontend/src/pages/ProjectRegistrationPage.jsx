@@ -20,7 +20,7 @@ const DEFAULT_FILTERS = {
 };
 
 export default function ProjectRegistrationPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [projects, setProjects] = useState([]);
@@ -35,7 +35,8 @@ export default function ProjectRegistrationPage() {
 
     try {
       const data = await listProjects(activeFilters);
-      setProjects(data);
+      const visibleProjects = isAdmin ? data.filter((project) => project.status !== "draft") : data;
+      setProjects(visibleProjects);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Không thể tải danh sách hồ sơ."));
     } finally {
@@ -107,7 +108,7 @@ export default function ProjectRegistrationPage() {
       <MetricStrip
         items={[
           { label: "Tổng số hồ sơ", value: summary.total || 0, hint: "Tổng số hồ sơ đang hiển thị trên màn hình này." },
-          { label: "Nháp", value: summary.draft || 0, hint: "Hồ sơ chưa nộp lên hệ thống." },
+          // { label: "Nháp", value: summary.draft || 0, hint: "Hồ sơ chưa nộp lên hệ thống." },
           { label: "Đã nộp", value: summary.submitted || 0, hint: "Hồ sơ đã nộp lên hệ thống." },
           { label: "Đã hủy", value: summary.canceled || 0, hint: "Hồ sơ đã bị hủy bỏ." },
           { label: "Hoàn thành", value: summary.completed || 0, hint: "Hồ sơ đã được đóng và lưu trữ." },
@@ -126,6 +127,7 @@ export default function ProjectRegistrationPage() {
           setDraftFilters(DEFAULT_FILTERS);
           setFilters(DEFAULT_FILTERS);
         }}
+        hideDraft={isAdmin}
       />
 
       {loading ? <LoadingState title="Đang tải hồ sơ" message="Hệ thống đang lấy dữ liệu hồ sơ." /> : null}
