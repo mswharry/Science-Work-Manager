@@ -46,7 +46,7 @@ def _validate_project_status(status_value: str) -> ProjectStatus:
     return ProjectStatus(status_value)
 
 
-
+# Tái sử dụng query có join để tránh N+1 khi truy vấn chi tiết đề tài hoặc danh sách đề tài
 def _project_query() -> Select[tuple[Project]]:
     return select(Project).options(
         joinedload(Project.category),
@@ -56,7 +56,6 @@ def _project_query() -> Select[tuple[Project]]:
         joinedload(Project.reviewer),
         joinedload(Project.completion_requester),
     )
-
 
 
 def _decorate_project(project: Project) -> Project:
@@ -71,14 +70,11 @@ def _decorate_project(project: Project) -> Project:
     return project
 
 
-
 def _decorate_projects(projects: list[Project]) -> list[Project]:
     return [_decorate_project(project) for project in projects]
 
-
 def _registration_history_query() -> Select[tuple[RegistrationHistory]]:
     return select(RegistrationHistory).options(joinedload(RegistrationHistory.performer))
-
 
 def _execution_history_query() -> Select[tuple[ExecutionHistory]]:
     return select(ExecutionHistory).options(joinedload(ExecutionHistory.performer))
