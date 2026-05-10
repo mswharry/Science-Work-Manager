@@ -111,8 +111,6 @@ export default function ProjectRegistrationHistoryPage() {
         </div>
       </section>
 
-      {error ? <div className="notice notice--danger">{error}</div> : null}
-
       {histories.length ? (
         <section className="panel stack-md">
           <div className="section-heading">

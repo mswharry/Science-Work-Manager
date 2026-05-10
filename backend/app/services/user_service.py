@@ -6,7 +6,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.constants import UserRole
+from app.core.security import get_password_hash, verify_password
 from app.models.user import User
+from app.schemas.auth import ChangePasswordRequest
 from app.schemas.user import UserApproveRequest
 
 
@@ -87,3 +89,27 @@ def toggle_user_block(db: Session, user_id: int) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+def change_user_password(db: Session, user: User, payload: ChangePasswordRequest) -> None:
+    if payload.new_password != payload.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mật khẩu mới và xác nhận mật khẩu không khớp.",
+        )
+
+    if not verify_password(payload.current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mật khẩu hiện tại không đúng.",
+        )
+
+    if verify_password(payload.new_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mật khẩu mới phải khác mật khẩu hiện tại.",
+        )
+
+    user.hashed_password = get_password_hash(payload.new_password)
+    db.commit()
+    db.refresh(user)

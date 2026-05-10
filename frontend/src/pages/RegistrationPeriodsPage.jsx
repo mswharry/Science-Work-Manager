@@ -12,7 +12,7 @@ import { formatDate } from "../utils/formatters";
 import { canCreateProject } from "../utils/permissions";
 
 export default function RegistrationPeriodsPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [periods, setPeriods] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [draftKeyword, setDraftKeyword] = useState("");
@@ -44,6 +44,13 @@ export default function RegistrationPeriodsPage() {
         eyebrow="Đợt đăng ký"
         title="Thông tin đợt đăng ký đề tài"
         description="Xem thời gian đăng ký, điều kiện tham gia và yêu cầu liên quan do nhà trường hoặc khoa công bố."
+        actions={
+          isAdmin ? (
+            <Link to="/admin" state={{ activeTab: "registration-periods" }} className="button">
+              Tạo đợt đăng ký
+            </Link>
+          ) : null
+        }
       />
 
       <form

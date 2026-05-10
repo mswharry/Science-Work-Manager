@@ -66,9 +66,9 @@ export default function Navbar({ showSidebar = true, sidebarCollapsed = false, o
               <NavLink to="/login" className="button button--secondary nav-button-link">
                 Đăng nhập
               </NavLink>
-              <NavLink to="/register" className="button nav-button-link">
+              {/* <NavLink to="/register" className="button nav-button-link">
                 Đăng ký
-              </NavLink>
+              </NavLink> */}
             </>
           )}
         </div>

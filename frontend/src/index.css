@@ -150,6 +150,8 @@ strong {
 .nav-actions,
 .button-row,
 .table-actions,
+.period-actions,
+.period-actions__row,
 .filter-footer,
 .tab-switcher {
   display: flex;
@@ -402,6 +404,29 @@ strong {
   font-size: 0.88rem;
 }
 
+.period-actions {
+  display: grid;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.period-actions__edit {
+  width: 100%;
+  justify-content: center;
+}
+
+.period-actions__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.period-actions__row .button {
+  width: 100%;
+  justify-content: center;
+  white-space: nowrap;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -525,6 +550,28 @@ select.input:focus {
   height: 16px;
 }
 
+.period-toggle-field {
+  align-content: start;
+}
+
+.period-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  color: var(--text-muted);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.period-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 16px;
+}
+
 .notice {
   padding: 14px 16px;
   border-radius: 14px;
@@ -585,6 +632,11 @@ select.input:focus {
 .badge--warning {
   background: var(--warning-soft);
   color: var(--warning);
+}
+
+.badge--submitted {
+  background: rgba(206, 203, 17, 0.16);
+  color: #85821be2;
 }
 
 .badge--danger {

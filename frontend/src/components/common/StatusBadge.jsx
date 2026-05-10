@@ -2,7 +2,7 @@ import { formatLabel } from "../../utils/formatters";
 
 const toneMap = {
   draft: "neutral",
-  submitted: "warning",
+  submitted: "submitted",
   canceled: "danger",
   pending: "warning",
   approved: "success",

@@ -6,9 +6,16 @@ from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import DbSession, get_current_admin_user, get_current_user
 from app.models.user import User
+from app.schemas.auth import ChangePasswordRequest
 from app.schemas.common import MessageResponse
 from app.schemas.user import LecturerLookupOut, UserApproveRequest, UserOut
-from app.services.user_service import approve_user, list_available_lecturers, list_users, toggle_user_block
+from app.services.user_service import (
+    approve_user,
+    change_user_password,
+    list_available_lecturers,
+    list_users,
+    toggle_user_block,
+)
 
 router = APIRouter(tags=["users"])
 
@@ -16,6 +23,16 @@ router = APIRouter(tags=["users"])
 @router.get("/users/me", response_model=UserOut)
 def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> UserOut:
     return UserOut.model_validate(current_user)
+
+
+@router.put("/users/me/password", response_model=MessageResponse)
+def change_my_password(
+    payload: ChangePasswordRequest,
+    db: DbSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> MessageResponse:
+    change_user_password(db=db, user=current_user, payload=payload)
+    return MessageResponse(message="Đổi mật khẩu thành công.")
 
 
 @router.get("/users/lecturers", response_model=list[LecturerLookupOut])
