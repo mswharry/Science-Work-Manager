@@ -6,7 +6,7 @@ import ErrorState from "../components/common/ErrorState";
 import FormField from "../components/common/FormField";
 import { listReviewerAssignments } from "../services/approvalService";
 import { getApiErrorMessage } from "../utils/apiError";
-import { formatDate, formatLabel, formatProjectRecordCode } from "../utils/formatters";
+import { formatDate, formatDateTime, formatLabel, formatProjectRecordCode } from "../utils/formatters";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Tất cả" },
@@ -38,6 +38,24 @@ export default function ReviewFeedbackListPage() {
   useEffect(() => {
     loadAssignments();
   }, [status]);
+
+  const renderMeetingLocation = (value) => {
+    if (!value) {
+      return "—";
+    }
+
+    const trimmed = String(value).trim();
+    const isLink = /^https?:\/\//i.test(trimmed);
+    if (!isLink) {
+      return trimmed;
+    }
+
+    return (
+      <a href={trimmed} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
+        Mở link họp
+      </a>
+    );
+  };
 
   return (
     <div className="stack-xl">
@@ -81,6 +99,7 @@ export default function ReviewFeedbackListPage() {
                     <th>Mã</th>
                     <th>Đề tài</th>
                     <th>Hạn nộp</th>
+                    <th>Lịch họp</th>
                     <th>Trạng thái</th>
                     <th>Thao tác</th>
                   </tr>
@@ -91,6 +110,16 @@ export default function ReviewFeedbackListPage() {
                       <td>{formatProjectRecordCode({ id: assignment.project_id, code: assignment.project_code })}</td>
                       <td>{assignment.project_name || "—"}</td>
                       <td>{formatDate(assignment.due_date)}</td>
+                      <td>
+                        {assignment.meeting_at
+                          ? (
+                            <div className="stack-xs">
+                              <div>{formatDateTime(assignment.meeting_at)}</div>
+                              <div>{renderMeetingLocation(assignment.meeting_location)}</div>
+                            </div>
+                          )
+                          : "Chưa đặt"}
+                      </td>
                       <td>{formatLabel(assignment.status)}</td>
                       <td>
                         <Link className="button button--secondary button--small" to={`/review-assignments/${assignment.id}`}>

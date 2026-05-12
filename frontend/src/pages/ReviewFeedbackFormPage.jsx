@@ -5,7 +5,7 @@ import FormField from "../components/common/FormField";
 import LoadingState from "../components/common/LoadingState";
 import ErrorState from "../components/common/ErrorState";
 import { getApiErrorMessage } from "../utils/apiError";
-import { formatDate, formatProjectRecordCode } from "../utils/formatters";
+import { formatDate, formatDateTime, formatProjectRecordCode } from "../utils/formatters";
 import {
   getAssignmentFeedback,
   submitAssignmentFeedback,
@@ -78,6 +78,24 @@ export default function ReviewFeedbackFormPage() {
   useEffect(() => {
     loadData();
   }, [assignmentId]);
+
+  const renderMeetingLocation = (value) => {
+    if (!value) {
+      return "Chưa có";
+    }
+
+    const trimmed = String(value).trim();
+    const isLink = /^https?:\/\//i.test(trimmed);
+    if (!isLink) {
+      return trimmed;
+    }
+
+    return (
+      <a href={trimmed} target="_blank" rel="noreferrer" className="button button--secondary button--small nav-button-link">
+        Mở link họp
+      </a>
+    );
+  };
 
   const handleChange = (field, value) => {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -161,6 +179,19 @@ export default function ReviewFeedbackFormPage() {
           </Link>
         }
       />
+
+      <section className="panel form-panel">
+        <div className="form-grid form-grid--2">
+          <FormField label="Thời gian họp">
+            <input className="input" value={assignment.meeting_at ? formatDateTime(assignment.meeting_at) : "Chưa đặt"} disabled readOnly />
+          </FormField>
+          <FormField label="Địa điểm họp">
+            <div className="input">
+              {renderMeetingLocation(assignment.meeting_location)}
+            </div>
+          </FormField>
+        </div>
+      </section>
 
       <form className="panel form-panel stack-lg" onSubmit={(event) => handleSubmit(event, true)}>
         <div className="form-grid form-grid--2">
